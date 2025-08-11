@@ -1,0 +1,112 @@
+<!-- templates/partials/sidebar.html -->
+<div class="sidebar bg-gradient-primary shadow rounded py-4 px-3">
+  <div class="text-center mb-4">
+    <h4 class="fw-bold text-white">
+      <i class="fas fa-building me-2"></i> SmartYönetici
+    </h4>
+  </div>
+  <div class="list-group list-group-flush">
+    <a href="{{ url_for('main.profil') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-user fa-fw me-3"></i> Profilim
+    </a>
+    {% if session.get("rol") == "yonetici" %}
+    <a href="{{ url_for('main.dashboard_yonetici') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-home fa-fw me-3"></i> Ana Sayfa
+    </a>
+    {% endif %}
+
+    {% if session.get("rol") == "sakin" %}
+    <a href="{{ url_for('main.dashboard_sakin') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-home fa-fw me-3"></i> Ana Sayfa
+    </a>
+    {% endif %}
+
+    {% if session.get("rol") == "yonetici" %}
+    <a href="{{ url_for('main.aidat_takip') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-file-invoice-dollar fa-fw me-3"></i> Aidat Takibi
+    </a>
+    {% endif %}
+
+    {% if session.get("rol") == "sakin" %}
+    <a href="{{ url_for('main.aidat_odeme') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-file-invoice-dollar fa-fw me-3"></i> Aidat Ödeme
+    </a>
+    {% endif %}
+
+    {% if session.get("rol") == "yonetici" %}
+    <a href="{{ url_for('main.ai_duyuru_olustur') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-bullhorn fa-fw me-3"></i> AI Duyuru
+    </a>
+    {% endif %}
+
+    <a href="{{ url_for('main.duyurular') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-bullhorn fa-fw me-3"></i> Duyurular
+    </a>
+
+    {% if session.get("rol") == "sakin" %}
+    <a href="{{ url_for('main.sikayet_olustur') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-exclamation-circle fa-fw me-3"></i> AI Şikayet
+    </a>
+    {% endif %}
+
+    {% if session.get("rol") == "yonetici" %}
+    <a href="{{ url_for('main.sikayetler') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-exclamation-circle fa-fw me-3"></i> Şikayetler
+    </a>
+    {% endif %}
+    
+    <a href="{{ url_for('main.sikayet_grafik') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-exclamation-circle fa-fw me-3"></i> Şikayet Grafik
+    </a>
+    <a href="{{ url_for('main.gelir_gider') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-chart-line fa-fw me-3"></i> Gelir-Gider
+    </a>
+    
+    <a href="{{ url_for('main.akilli_sorgu') }}"
+      class="list-group-item list-group-item-action bg-transparent text-white d-flex align-items-center mb-2 border-0 sidebar-link">
+      <i class="fas fa-lightbulb fa-fw me-3"></i> Akıllı Sorgu
+    </a>
+    <a href="{{ url_for('main.logout') }}"
+      class="list-group-item list-group-item-action bg-transparent text-danger d-flex align-items-center mt-3 border-0 sidebar-link">
+      <i class="fas fa-sign-out-alt fa-fw me-3"></i> Çıkış
+    </a>
+  </div>
+</div>
+<style>
+  .sidebar {
+    background: linear-gradient(135deg, #007bff 0%, #0056b3 100%);
+    min-height: 100vh;
+  }
+
+  .sidebar-link:hover,
+  .sidebar-link.active {
+    background: rgba(255, 255, 255, 0.1);
+    color: #ffd700 !important;
+    transition: background 0.2s, color 0.2s;
+  }
+
+  .sidebar .list-group-item {
+    font-size: 1.08rem;
+    font-weight: 500;
+    border-radius: 8px;
+  }
+
+  .sidebar .text-white {
+    color: #fff !important;
+  }
+
+  .sidebar .text-danger {
+    color: #ff4d4f !important;
+  }
+</style>

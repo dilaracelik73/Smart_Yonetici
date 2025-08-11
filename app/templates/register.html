@@ -1,0 +1,306 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Kayıt Ol | SmartYönetici</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      /* Login sayfasıyla aynı birincil renk */
+      --primary:#6c63ff;
+      --card-bg: rgba(255,255,255,0.86);
+      --card-border: rgba(255,255,255,0.35);
+      --link:#6b7280;
+      --link-hover:#4f46e5;
+    }
+
+    /* Arka planı değiştirmiyoruz (inline style body'de) */
+
+    /* Kart: cam efekti + küçültülmüş genişlik */
+
+  .auth-card{
+    background: var(--card-bg);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid var(--card-border);
+    border-radius: 1.1rem;
+    box-shadow: 0 18px 48px rgba(0,0,0,.18);
+    overflow: hidden;
+    width: 100%;
+    max-width: 520px;       /* daha geniş */
+    margin: auto;           /* ortalama */
+  }
+  .auth-body{ padding:2rem; }
+  @media (min-width: 992px){ .auth-body{ padding:2.6rem; } }
+    
+    /* Üst renk şeridi: login ile uyumlu soft gradyan */
+    .accent-strip{
+      height:6px;
+      background: linear-gradient(90deg, #a18cd1, #fbc2eb, #84fab0, #8fd3f4);
+    }
+
+    /* Başlık/alt link stilleri */
+    .brand-title{ letter-spacing:.3px; }
+    .muted-link{ color:var(--link); text-decoration:none; }
+    .muted-link:hover{ color:var(--link-hover); text-decoration:underline; }
+    .tiny{ font-size:.92rem; }
+
+    /* Form-floating görünümü login ile uyumlu */
+    .form-floating > label{ color:#6c757d; }
+    .form-control{
+      background: rgba(255,255,255,0.95)!important;
+      border:1px solid rgba(0,0,0,.08);
+    }
+    .form-control:focus{
+      border-color: rgba(108,99,255,.45);
+      box-shadow: 0 0 0 .25rem rgba(108,99,255,.15);
+    }
+
+    /* Butonlar: login ile aynı renk */
+    .btn-primary{ background:var(--primary); border-color:var(--primary); }
+    .btn-primary:hover{ filter: brightness(.96); }
+
+    /* Şifre göster/gizle butonu */
+    .toggle-eye{
+      position:absolute; right:.5rem; top:50%; transform: translateY(-50%);
+      background:transparent; border:0; color:#6c6f7a;
+    }
+
+    /* Özel ROL seçici: login paletine uygun */
+    .select.is-custom{ position:relative; min-width:100%; }
+    .select-toggle{
+      width:100%;
+      background:#fff;
+      border:1px solid rgba(0,0,0,.08);
+      border-radius: .75rem;
+      padding:.8rem 1rem;
+      display:flex; align-items:center; justify-content:space-between;
+      box-shadow:0 2px 8px rgba(0,0,0,.06);
+      transition:all .18s ease;
+      font-weight:600; color:#212529;
+    }
+    .select-toggle:hover{ background:#f8f9fa; }
+    .select-toggle:focus{ outline:none; border-color: rgba(108,99,255,.45); box-shadow:0 0 0 .25rem rgba(108,99,255,.15); }
+
+    .select-menu{
+      position:absolute; right:0; left:0; top:calc(100% + 8px);
+      background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:.9rem;
+      box-shadow:0 16px 36px rgba(0,0,0,.15);
+      padding:.4rem; margin:0; list-style:none; max-height:320px; overflow:auto;
+      opacity:0; visibility:hidden; transform:translateY(-6px); transition:all .18s ease; z-index:50;
+    }
+    .select.is-open .select-menu{ opacity:1; visibility:visible; transform:translateY(0); }
+
+    .select-option{
+      padding:.6rem .7rem; border-radius:.6rem; cursor:pointer;
+      color:#212529; font-weight:500; white-space:nowrap;
+    }
+    .select-option:hover{ background:#f6f7fb; }
+    .select-option.active{ background:#e7f0ff; color:var(--primary); }
+
+    /* Uyumlu küçük alt telif */
+    .copyright{ color:rgba(255,255,255,.75); }
+  </style>
+</head>
+
+<body style="background: linear-gradient(to right, #43cea2, #185a9d); min-height: 100vh; display: flex; align-items: center; justify-content: center;">
+
+  <div class="container">
+  <div class="row justify-content-center">
+    <div class="col-md-8 col-lg-6"> <!-- ortalama ve genişlik dengesi -->
+      <div class="auth-card">
+        <div class="accent-strip"></div>
+        <div class="auth-body">
+            <h3 class="text-center brand-title mb-3 fw-bold" style="color:var(--primary);">Kayıt Ol</h3>
+            <p class="text-center text-muted mb-4">SmartYönetici hesabını birkaç adımda oluştur</p>
+
+            <!-- Flask flash mesajları -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <form method="POST" action="/register" id="registerForm" novalidate>
+              {# {{ form.csrf_token }} #}
+
+              <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="ad_soyad" name="ad_soyad" placeholder="Ad Soyad" required>
+                <label for="ad_soyad">Ad Soyad</label>
+                <div class="invalid-feedback">Lütfen ad soyad giriniz.</div>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" name="email" placeholder="ad@ornek.com" required>
+                <label for="email">E-posta</label>
+                <div class="invalid-feedback">Geçerli bir e-posta giriniz.</div>
+              </div>
+
+              <div class="form-floating mb-3 position-relative">
+                <input type="password" class="form-control" id="sifre" name="sifre" placeholder="••••••••" required minlength="6" autocomplete="new-password">
+                <label for="sifre">Şifre</label>
+                <button type="button" class="toggle-eye" id="togglePwd1" aria-label="Şifreyi göster/gizle">
+                  <i class="fa-regular fa-eye" id="toggleIcon1"></i>
+                </button>
+                <div class="invalid-feedback">Şifre en az 6 karakter olmalı.</div>
+              </div>
+
+              <div class="form-floating mb-3 position-relative">
+                <input type="password" class="form-control" id="sifre_tekrar" name="sifre_tekrar" placeholder="••••••••" required autocomplete="new-password">
+                <label for="sifre_tekrar">Şifre (Tekrar)</label>
+                <button type="button" class="toggle-eye" id="togglePwd2" aria-label="Şifreyi göster/gizle">
+                  <i class="fa-regular fa-eye" id="toggleIcon2"></i>
+                </button>
+                <div class="invalid-feedback">Şifreler eşleşmiyor.</div>
+              </div>
+
+              <!-- ROL (Custom Select) -->
+              <div class="mb-3">
+                <label class="form-label">Rol</label>
+                <input type="hidden" name="rol" id="rol_hidden" value="" required>
+                <div class="select is-custom" id="rolSelect" data-value="">
+                  <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+                    <span class="select-label text-muted">Rol seçiniz</span>
+                    <i class="fas fa-chevron-down ms-2"></i>
+                  </button>
+                  <ul class="select-menu" role="listbox">
+                    <li class="select-option" data-value="yonetici">👑 Yönetici</li>
+                    <li class="select-option" data-value="sakin">🏠 Sakin</li>
+                  </ul>
+                </div>
+              </div>
+
+              <div class="form-floating mb-3">
+                <input type="tel" class="form-control" id="telefon" name="telefon" placeholder="+90 5xx xxx xx xx">
+                <label for="telefon">Telefon (opsiyonel)</label>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                <span class="submit-text">Kayıt Ol</span>
+                <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+              </button>
+            </form>
+
+            <hr class="my-4">
+
+            <p class="text-center tiny mb-0">
+              Zaten hesabın var mı?
+              <a href="/login" class="muted-link">Giriş Yap</a>
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Şifre göster/gizle
+    function setupToggle(inputId, btnId, iconId){
+      const input = document.getElementById(inputId);
+      const btn = document.getElementById(btnId);
+      const icon = document.getElementById(iconId);
+      btn?.addEventListener('click', () => {
+        const isPass = input.type === 'password';
+        input.type = isPass ? 'text' : 'password';
+        icon.classList.toggle('fa-eye');
+        icon.classList.toggle('fa-eye-slash');
+      });
+    }
+    setupToggle('sifre', 'togglePwd1', 'toggleIcon1');
+    setupToggle('sifre_tekrar', 'togglePwd2', 'toggleIcon2');
+
+    // Şifre tekrar eşleşme kontrolü
+    const pwd  = document.getElementById('sifre');
+    const pwd2 = document.getElementById('sifre_tekrar');
+    function checkMatch(){
+      if(!pwd2.value) return;
+      if(pwd2.value !== pwd.value){
+        pwd2.setCustomValidity('Şifreler eşleşmiyor');
+      } else {
+        pwd2.setCustomValidity('');
+      }
+    }
+    pwd?.addEventListener('input', checkMatch);
+    pwd2?.addEventListener('input', checkMatch);
+
+    // Form doğrulama + submit spinner (login ile aynı davranış)
+    (function () {
+      const form = document.getElementById('registerForm');
+      const btn = document.getElementById('submitBtn');
+      const spinner = btn.querySelector('.spinner-border');
+      const text = btn.querySelector('.submit-text');
+
+      form?.addEventListener('submit', function (e) {
+        if (!form.checkValidity()) {
+          e.preventDefault(); e.stopPropagation();
+        } else {
+          btn.setAttribute('disabled', 'disabled');
+          spinner.classList.remove('d-none');
+          text.textContent = 'Kaydediliyor...';
+        }
+        form.classList.add('was-validated');
+      }, false);
+    })();
+
+    // Özel ROL seçici
+    (function(){
+      const root   = document.getElementById('rolSelect');
+      if(!root) return;
+
+      const toggle = root.querySelector('.select-toggle');
+      const label  = root.querySelector('.select-label');
+      const menu   = root.querySelector('.select-menu');
+      const hidden = document.getElementById('rol_hidden');
+
+      toggle.addEventListener('click', ()=>{
+        const open = root.classList.toggle('is-open');
+        toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      });
+
+      menu.addEventListener('click', e=>{
+        const opt = e.target.closest('.select-option');
+        if(!opt) return;
+
+        root.querySelectorAll('.select-option').forEach(o=>o.classList.remove('active'));
+        opt.classList.add('active');
+
+        label.textContent = opt.textContent.trim();
+        label.classList.remove('text-muted');
+
+        const val = opt.dataset.value || '';
+        hidden.value = val;
+        root.dataset.value = val;
+
+        root.classList.remove('is-open');
+        toggle.setAttribute('aria-expanded','false');
+      });
+
+      // dışarı tık/esc kapat
+      document.addEventListener('click', e=>{
+        if(!root.contains(e.target)){
+          root.classList.remove('is-open');
+          toggle.setAttribute('aria-expanded','false');
+        }
+      });
+      document.addEventListener('keydown', e=>{
+        if(e.key === 'Escape'){
+          root.classList.remove('is-open');
+          toggle.setAttribute('aria-expanded','false');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

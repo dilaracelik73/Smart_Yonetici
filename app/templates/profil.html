@@ -1,0 +1,168 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+
+<div class="mb-5 fw-bold text-primary" style="border-radius: 1rem;">
+  <div class="card-body" 
+       style="background: linear-gradient(90deg, #e3f2fd, #bbdefb);
+              border-left: 6px solid #0d6efd; border-radius: 1rem;">
+    <div class="d-flex flex-column flex-md-row align-items-center justify-content-between gap-4 p-4 rounded-4">
+    
+        
+      
+      <!-- Profil Avatarı -->
+      <div class="rounded-circle d-flex align-items-center justify-content-center mb-3 mb-md-0"
+           style="width:90px;height:90px;background: linear-gradient(135deg, #e3f2fd, #bbdefb);border: 2px solid #90caf9;box-shadow: 0 3px 8px rgba(0,0,0,0.1);">
+        <span class="fw-bold text-primary" style="font-size:2rem;">
+          {{ (kullanici.ad_soyad or 'Kullanıcı')[:1] }}
+        </span>
+      </div>
+      
+      <!-- Ad Soyad ve Email -->
+      <div class="flex-grow-1 text-center text-md-start">
+        <h3 class="fw-bold mb-1">{{ kullanici.ad_soyad }}</h3>
+        <p class="small text-muted mb-2">{{ kullanici.email }}</p>
+      </div>
+      
+      <!-- Butonlar -->
+      <div class="d-flex flex-column flex-md-row gap-2">
+        <a href="#profilForm" class="btn btn-primary rounded-pill px-4 py-2 profile-btn">
+          <i class="bi bi-pencil-square me-1"></i> Profili Düzenle
+        </a>
+        <a href="{{ url_for('main.sifre_guncelle') }}" class="btn btn-warning rounded-pill px-4 py-2 profile-btn">
+          <i class="bi bi-shield-lock me-1"></i> Şifreni Değiştir
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.profile-btn {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.18s cubic-bezier(.4,2,.3,1);
+}
+.profile-btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15);
+}
+</style>
+
+
+  <!-- PROFİL FORMU -->
+  <div id="profilForm" class="card border-0 shadow-sm mb-4" style="border-radius: 1rem;">
+    <div class="card-header py-3" style="background: linear-gradient(135deg, #1cc88a, #17a673); color:white; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+      <h5 class="mb-0"><i class="bi bi-person-gear"></i> Profil Bilgileri</h5>
+    </div>
+    <div class="card-body">
+      <form method="POST">
+        <div class="row g-3">
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Ad Soyad</label>
+            <input type="text" class="form-control" name="ad_soyad" value="{{ kullanici.ad_soyad }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Telefon</label>
+            <input type="text" class="form-control" name="telefon" value="{{ kullanici.telefon }}">
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">E-posta</label>
+            <input type="email" class="form-control" value="{{ kullanici.email }}" disabled>
+          </div>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">Rol</label>
+            <input type="text" class="form-control" value="{{ kullanici.rol }}" disabled>
+          </div>
+        </div>
+        <div class="mt-4 text-end">
+          <button type="submit" class="btn btn-success btn-lg px-4 shadow-sm custom-btn">
+            <i class="bi bi-shield-lock me-1"></i> Kaydet
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- HESAP ÖZETİ + SON ETKİNLİKLER -->
+  <div class="row g-4">
+    <div class="col-lg-4">
+      <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+        <div class="card-header py-3" style="background: linear-gradient(135deg, #36b9cc, #258ea6); color:white; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+          <h6 class="mb-0"><i class="bi bi-card-list"></i> Hesap Özeti</h6>
+        </div>
+        <div class="card-body">
+          <ul class="list-group list-group-flush">
+            <li class="list-group-item d-flex justify-content-between">
+              <span class="text-muted">Kullanıcı ID</span>
+              <span>{{ kullanici.id }}</span>
+            </li>
+            <li class="list-group-item d-flex justify-content-between">
+              <span class="text-muted">Durum</span>
+              <span class="badge {% if kullanici.aktif %}bg-success{% else %}bg-secondary{% endif %}">
+                {{ 'Aktif' if kullanici.aktif else 'Pasif' }}
+              </span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <div class="col-lg-8">
+      <div class="card border-0 shadow-sm" style="border-radius: 1rem;">
+        <div class="card-header py-3" style="background: linear-gradient(135deg, #f6c23e, #dda20a); color:white; border-top-left-radius: 1rem; border-top-right-radius: 1rem;">
+          <h6 class="mb-0"><i class="bi bi-clock-history"></i> Son Etkinlikler</h6>
+        </div>
+        <div class="card-body p-0">
+          <table class="table table-hover mb-0">
+            <thead class="table-light">
+              <tr>
+                <th>Tarih</th>
+                <th>İşlem</th>
+                <th>Durum</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% if son_aktiviteler %}
+                {% for log in son_aktiviteler %}
+                  <tr>
+                    <td>{{ log.tarih }}</td>
+                    <td>{{ log.eylem }}</td>
+                    <td>
+                      <span class="badge {{ 'bg-success' if log.durum == 'Başarılı' else 'bg-danger' }}">
+                        {{ log.durum }}
+                      </span>
+                    </td>
+                  </tr>
+                {% endfor %}
+              {% else %}
+                <tr>
+                  <td colspan="3" class="text-center text-muted">Kayıt bulunamadı</td>
+                </tr>
+              {% endif %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .custom-btn {
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.18s cubic-bezier(.4,2,.3,1);
+  border-radius: 50px;
+}
+  .custom-btn:hover {
+    transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15)
+  }
+</style>
+{% endblock %}

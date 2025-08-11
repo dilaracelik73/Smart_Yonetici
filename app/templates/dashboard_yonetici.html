@@ -1,0 +1,136 @@
+{# templates/dashboard_yonetici.html #}
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Dashboard</h1>
+    <p class="lead">Yapay zeka destekli bina yönetimi sistemi</p>
+
+    <!-- Şikayet bildirimi kartı -->
+    <div class="alert alert-warning d-flex justify-content-between align-items-center">
+        <div>
+            <strong>🔔 Yeni Şikayet</strong>
+            <br>
+            A-5 dairesinden yeni bir şikayet geldi. AI tarafından "Teknik" kategorisinde sınıflandırıldı.
+        </div>
+        <button class="btn-close" data-bs-dismiss="alert"></button>
+    </div>
+
+    <!-- Kartlar -->
+    <div class="row">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-users fa-2x"></i>
+                        <h4>{{ kullanici_sayisi }}</h4>
+                        <span>Toplam Sakin</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-check-circle fa-2x"></i>
+                        <h4>{{ toplam_tahsilat }}</h4>
+                        <span>Ödenen Aidatlar</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark mb-4">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        <h4>{{ toplam_sikayet }}</h4>
+                        <span>Bekleyen Şikayetler</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-3">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body d-flex align-items-center justify-content-between">
+                    <div>
+                        <i class="fas fa-robot fa-2x"></i>
+                        <h4>42</h4>
+                        <span>AI İşlemleri</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gelir-Gider Analizi + Son Duyurular -->
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-1"></i>
+                    Aylık Gelir-Gider Analizi
+                </div>
+                <div class="card-body">
+                    <canvas id="gelirGiderChart" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-bell me-1"></i>
+                    Son Duyurular
+                </div>
+                <div class="card-body">
+                    <ul class="list-unstyled">
+                        <li>
+                            <strong>2 gün önce</strong><br>
+                            Elektrik kesintisi duyurusu<br>
+                            <span class="badge bg-warning text-dark">AI Oluşturuldu</span>
+                        </li>
+                        <hr>
+                        <li>
+                            <strong>5 gün önce</strong><br>
+                            Aidat ödemeleri hakkında<br>
+                            <span class="badge bg-warning text-dark">AI Oluşturuldu</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Gelir-Gider Chart (dummy)
+const ctx = document.getElementById('gelirGiderChart').getContext('2d');
+new Chart(ctx, {
+    type: 'line',
+    data: {
+        labels: ['Ocak', 'Subat', 'Mart', 'Nisan', 'Mayis', 'Haziran', 'Temmuz'],
+        datasets: [
+            {
+                label: 'Gelir',
+                data: [12000, 14500, 13000, 15500, 14000, 16000, 18000],
+                borderColor: 'green',
+                backgroundColor: 'rgba(0,128,0,0.1)',
+                fill: true
+            },
+            {
+                label: 'Gider',
+                data: [8000, 9000, 8500, 10000, 9000, 11000, 12000],
+                borderColor: 'red',
+                backgroundColor: 'rgba(255,0,0,0.1)',
+                fill: true
+            }
+        ]
+    }
+});
+</script>
+{% endblock %}

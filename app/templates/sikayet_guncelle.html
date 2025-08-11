@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% block title %}Şikayet Güncelle{% endblock %}
+{% block content %}
+<div class="container mt-5">
+    <h4 class="mb-4"><i class="fas fa-edit"></i> Şikayet Güncelle</h4>
+
+    <form method="POST">
+        <!-- Durum (Custom Select) -->
+<div class="mb-3">
+  <label class="form-label fw-semibold">Durum</label>
+
+  <!-- Forma gidecek gerçek değer -->
+  <input type="hidden" name="durum" id="durum_hidden" value="{{ sikayet.durum or 'bekliyor' }}">
+
+  <!-- Görsel custom select -->
+  <div class="select is-custom" id="durumSelect" data-value="{{ sikayet.durum or 'bekliyor' }}">
+    <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+      <span class="select-label">
+        {% set d = sikayet.durum or 'bekliyor' %}
+        {% set label_map = {
+          'bekliyor':'⏳ Bekliyor',
+          'inceleniyor':'🔎 İnceleniyor',
+          'cozuldu':'✅ Çözüldü',
+          'iptal':'✖️ İptal'
+        } %}
+        {{ label_map[d] }}
+      </span>
+      <i class="fas fa-chevron-down ms-2"></i>
+    </button>
+
+    <ul class="select-menu" role="listbox">
+      {% for val, txt in [('bekliyor','⏳ Bekliyor'),
+                          ('inceleniyor','🔎 İnceleniyor'),
+                          ('cozuldu','✅ Çözüldü'),
+                          ('iptal','✖️ İptal')] %}
+      <li class="select-option {% if (sikayet.durum or 'bekliyor') == val %}active{% endif %}"
+          data-value="{{ val }}">{{ txt }}</li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+
+        <div class="mb-3">
+            <label for="cozum_onerisi" class="form-label">Çözüm Önerisi</label>
+            <textarea name="cozum_onerisi" class="form-control" rows="3">{{ sikayet.cozum_onerisi }}</textarea>
+        </div>
+
+        <div class="mb-3">
+            <label for="admin_notu" class="form-label">Yönetici Notu</label>
+            <textarea name="admin_notu" class="form-control" rows="3">{{ sikayet.admin_notu }}</textarea>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Kaydet</button>
+        <a href="{{ url_for('main.sikayetler') }}" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
+<style>
+.select.is-custom{ position:relative; min-width:240px; }
+.select-toggle{
+  width:100%; background:#fff; border:1px solid #ced4da; border-radius:12px;
+  padding:.65rem .9rem; display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 2px 8px rgba(0,0,0,.06); transition:all .18s ease; font-weight:600; color:#212529;
+}
+.select-toggle:hover{ background:#f8f9fa; }
+.select-toggle:focus{ outline:none; border-color:#1e66ff; box-shadow:0 0 0 .2rem rgba(30,102,255,.15); }
+
+.select-menu{
+  position:absolute; right:0; left:0; top:calc(100% + 8px);
+  background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:14px;
+  box-shadow:0 16px 36px rgba(0,0,0,.15);
+  padding:.4rem; margin:0; list-style:none; max-height:320px; overflow:auto;
+  opacity:0; visibility:hidden; transform:translateY(-6px); transition:all .18s ease; z-index:30;
+}
+.select.is-open .select-menu{ opacity:1; visibility:visible; transform:translateY(0); }
+
+.select-option{
+  padding:.55rem .6rem; border-radius:10px; cursor:pointer;
+  color:#212529; font-weight:500; white-space:nowrap;
+}
+.select-option:hover{ background:#f6f7fb; }
+.select-option.active{ background:#e7f0ff; color:#1e66ff; }
+</style>
+<script>
+(function(){
+  const root   = document.getElementById('durumSelect');
+  if(!root) return;
+
+  const toggle = root.querySelector('.select-toggle');
+  const label  = root.querySelector('.select-label');
+  const menu   = root.querySelector('.select-menu');
+  const hidden = document.getElementById('durum_hidden');
+
+  // Aç/Kapat
+  toggle.addEventListener('click', ()=>{
+    const open = root.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  // Seçim
+  menu.addEventListener('click', e=>{
+    const opt = e.target.closest('.select-option');
+    if(!opt) return;
+
+    root.querySelectorAll('.select-option').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+
+    label.textContent = opt.textContent.trim();
+    const val = opt.dataset.value || '';
+    root.dataset.value = val;
+    hidden.value = val;
+
+    root.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+  });
+
+  // Dışarı tık/ESC kapat
+  document.addEventListener('click', e=>{
+    if(!root.contains(e.target)){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape'){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+})();
+</script>
+
+{% endblock %}

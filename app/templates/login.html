@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Giriş | SmartYönetici</title>
+
+  <!-- Bootstrap & Icons -->
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css" rel="stylesheet">
+
+  <style>
+    :root{
+      --primary:#6c63ff; /* ana renk */
+      --grad1:#667eea;
+      --grad2:#764ba2;
+      --card-bg: rgba(255,255,255,0.75);
+      --card-border: rgba(255,255,255,0.35);
+    }
+
+    /* Arka plan: yumuşak degrade + blur bloblar */
+    body{
+      min-height: 100vh;
+      background: linear-gradient(135deg, var(--grad1) 0%, var(--grad2) 100%);
+      display:flex;align-items:center;justify-content:center;
+      overflow:hidden;
+    }
+    .bg-blob, .bg-blob-2{
+      position:absolute; border-radius:50%;
+      filter: blur(60px); opacity: .35; z-index:0;
+      animation: float 18s ease-in-out infinite;
+    }
+    .bg-blob{ width:420px; height:420px; background:#ffffff; top:-80px; left:-80px;}
+    .bg-blob-2{ width:520px; height:520px; background:#ffd6e7; bottom:-120px; right:-120px; animation-delay: -6s;}
+    @keyframes float {
+      0%,100% { transform: translateY(0) }
+      50% { transform: translateY(-20px) }
+    }
+
+    /* Kart: cam efekti */
+    .auth-card{
+      position:relative; z-index:1;
+      background: var(--card-bg);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid var(--card-border);
+      border-radius: 1.25rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,.18);
+      overflow:hidden;
+    }
+    .brand-badge{
+      width:64px;height:64px; display:grid; place-items:center;
+      border-radius: 18px;
+      background: linear-gradient(135deg, #e3f2fd, #c8d9ff);
+      border:1px solid #c7d2fe;
+      color: var(--primary);
+      box-shadow: 0 8px 24px rgba(108,99,255,.25);
+    }
+    .brand-title{ letter-spacing:.4px; }
+
+    /* Renkli üst şerit */
+    .accent-strip{
+      height:6px;
+      background: linear-gradient(90deg, #a18cd1, #fbc2eb, #84fab0, #8fd3f4);
+    }
+
+    /* Floating labels boşluk düzeltmesi */
+    .form-floating > label{ color:#6c757d; }
+    .form-control{
+      background: rgba(255,255,255,0.85)!important;
+      border:1px solid rgba(0,0,0,.08);
+    }
+    .form-control:focus{
+      border-color: rgba(108,99,255,.45);
+      box-shadow: 0 0 0 .25rem rgba(108,99,255,.15);
+    }
+
+    /* Yardım metinleri */
+    .muted-link{ color:#6b7280; text-decoration:none; }
+    .muted-link:hover{ color:#4f46e5; text-decoration:underline; }
+
+    /* Buton */
+    .btn-primary{
+      background: var(--primary);
+      border-color: var(--primary);
+    }
+    .btn-primary:hover{
+      filter: brightness(0.96);
+    }
+
+    /* Küçük ekranlarda daha az padding */
+    .auth-body{ padding: 2rem; }
+    @media (min-width: 992px){
+      .auth-body{ padding: 3rem; }
+    }
+
+    /* Alt satır */
+    .tiny{ font-size:.9rem; }
+  </style>
+</head>
+<body>
+
+  <!-- Soft background blobs -->
+  <div class="bg-blob"></div>
+  <div class="bg-blob-2"></div>
+
+  <div class="container position-relative">
+    <div class="row justify-content-center">
+      <div class="col-sm-10 col-md-8 col-lg-6 col-xl-5">
+        <div class="auth-card">
+          <div class="accent-strip"></div>
+
+          <div class="auth-body">
+            <!-- Marka -->
+            <div class="text-center mb-4">
+              <div class="mx-auto brand-badge mb-3">
+                <i class="fas fa-building fa-lg"></i>
+              </div>
+              <h2 class="fw-bold brand-title mb-1">SmartYönetici</h2>
+              <p class="text-muted mb-0">Yapay Zeka Destekli Bina Yönetimi</p>
+            </div>
+
+            <!-- Flask flash mesajları -->
+            {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+              {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+              </div>
+              {% endfor %}
+            {% endif %}
+            {% endwith %}
+
+            <!-- Giriş Formu -->
+            <form method="POST" action="{{ url_for('main.login') }}" id="loginForm" novalidate>
+              <!-- CSRF kullanıyorsanız -->
+              {# {{ form.csrf_token }} #}
+
+              <div class="form-floating mb-3">
+                <input type="email" class="form-control" id="email" name="email" placeholder="name@example.com" required>
+                <label for="email">E-posta</label>
+                <div class="invalid-feedback">Lütfen geçerli bir e-posta giriniz.</div>
+              </div>
+
+              <div class="form-floating mb-3 position-relative">
+                <input type="password" class="form-control" id="sifre" name="sifre" placeholder="••••••••" required minlength="6">
+                <label for="sifre">Şifre</label>
+                <button class="btn btn-sm position-absolute top-50 end-0 translate-middle-y me-2" type="button" id="togglePwd" aria-label="Şifreyi göster/gizle" style="background:transparent;">
+                  <i class="fa-regular fa-eye" id="toggleIcon"></i>
+                </button>
+                <div class="invalid-feedback">Şifre en az 6 karakter olmalı.</div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mb-3">
+                <div class="form-check">
+                  <input class="form-check-input" type="checkbox" value="1" id="rememberMe" name="remember">
+                  <label class="form-check-label" for="rememberMe">Beni hatırla</label>
+                </div>
+                <a class="muted-link tiny" href="/forgot-password">Şifremi Unuttum</a>
+              </div>
+
+              <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                <span class="submit-text">Giriş Yap</span>
+                <span class="spinner-border spinner-border-sm d-none ms-2" role="status" aria-hidden="true"></span>
+              </button>
+            </form>
+
+            <hr class="my-4">
+
+            <p class="text-center tiny mb-0">
+              Hesabın yok mu?
+              <a href="/register" class="muted-link">Kayıt Ol</a>
+            </p>
+          </div>
+        </div>
+
+        <!-- Küçük alt bilgi -->
+        <p class="text-center text-white-50 mt-3 tiny">
+          © {{ 2025 }} SmartYönetici • Güvenli giriş
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.2/js/bootstrap.bundle.min.js"></script>
+  <script>
+    // Şifre göster/gizle
+    const togglePwd = document.getElementById('togglePwd');
+    const pwdInput = document.getElementById('sifre');
+    const toggleIcon = document.getElementById('toggleIcon');
+    togglePwd?.addEventListener('click', () => {
+      const isPass = pwdInput.type === 'password';
+      pwdInput.type = isPass ? 'text' : 'password';
+      toggleIcon.classList.toggle('fa-eye');
+      toggleIcon.classList.toggle('fa-eye-slash');
+    });
+
+    // Basit front-end doğrulama + butonda spinner
+    (function () {
+      const form = document.getElementById('loginForm');
+      const btn = document.getElementById('submitBtn');
+      const spinner = btn.querySelector('.spinner-border');
+      const text = btn.querySelector('.submit-text');
+
+      form?.addEventListener('submit', function (e) {
+        if (!form.checkValidity()) {
+          e.preventDefault();
+          e.stopPropagation();
+        } else {
+          btn.setAttribute('disabled', 'disabled');
+          spinner.classList.remove('d-none');
+          text.textContent = 'Giriş yapılıyor...';
+        }
+        form.classList.add('was-validated');
+      }, false);
+    })();
+  </script>
+</body>
+</html>

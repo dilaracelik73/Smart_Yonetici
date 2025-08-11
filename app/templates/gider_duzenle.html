@@ -1,0 +1,145 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h4><i class="fas fa-edit me-2"></i> Gider Düzenle</h4>
+    <form method="POST">
+        <!-- Kategori (Custom Select) -->
+<div class="mb-3">
+  <label class="form-label fw-semibold">Kategori</label>
+
+  <!-- Gönderilecek gerçek değer -->
+  <input type="hidden" name="kategori_id" id="kategori_id_hidden" value="{{ gider.kategori_id }}">
+
+  <!-- Custom Select -->
+  <div class="select is-custom" id="kategoriSelect" data-value="{{ gider.kategori_id }}">
+    <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+      <span class="select-label">
+        {# Başlangıç etiketi: aktif kategorinin adı #}
+        {% set aktif_kat = kategoriler|selectattr('id','equalto', gider.kategori_id)|list|first %}
+        {{ aktif_kat.ad if aktif_kat else 'Kategori seçiniz' }}
+      </span>
+      <i class="fas fa-chevron-down ms-2"></i>
+    </button>
+    <ul class="select-menu" role="listbox">
+      {% for kategori in kategoriler %}
+      <li class="select-option {% if kategori.id == gider.kategori_id %}active{% endif %}" data-value="{{ kategori.id }}">
+        <span class="select-dot"></span>{{ kategori.ad }}
+      </li>
+      {% endfor %}
+    </ul>
+  </div>
+</div>
+        <div class="mb-3">
+            <label>Açıklama</label>
+            <input type="text" name="aciklama" class="form-control" value="{{ gider.aciklama }}" required>
+        </div>
+        <div class="mb-3">
+            <label>Tutar</label>
+            <input type="number" name="tutar" class="form-control" value="{{ gider.tutar }}" required>
+        </div>
+        <div class="mb-3">
+            <label>Tarih</label>
+            <input type="date" name="tarih" class="form-control" value="{{ gider.tarih.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="mb-3">
+            <label>Fatura No</label>
+            <input type="text" name="fatura_no" class="form-control" value="{{ gider.fatura_no }}">
+        </div>
+        <div class="mb-3">
+            <label>Tedarikçi</label>
+            <input type="text" name="tedarikci" class="form-control" value="{{ gider.tedarikci }}">
+        </div>
+        <div class="mb-3">
+            <label>AI Risk Skoru</label>
+            <input type="text" name="ai_risk_skoru" class="form-control" value="{{ gider.ai_risk_skoru }}">
+        </div>
+        <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Kaydet</button>
+        <a href="{{ url_for('main.gelir_gider') }}" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
+
+<style>
+.select.is-custom{ position:relative; min-width:240px; }
+.select-toggle{
+  width:100%; background:#fff; border:1px solid #ced4da; border-radius:12px;
+  padding:.65rem .9rem; display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 2px 8px rgba(0,0,0,.06); transition:all .18s ease; font-weight:600; color:#212529;
+}
+.select-toggle:hover{ background:#f8f9fa; }
+.select-toggle:focus{ outline:none; border-color:#1e66ff; box-shadow:0 0 0 .2rem rgba(30,102,255,.15); }
+
+.select-menu{
+  position:absolute; right:0; left:0; top:calc(100% + 8px);
+  background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:14px;
+  box-shadow:0 16px 36px rgba(0,0,0,.15);
+  padding:.4rem; margin:0; list-style:none; max-height:320px; overflow:auto;
+  opacity:0; visibility:hidden; transform:translateY(-6px); transition:all .18s ease; z-index:30;
+}
+.select.is-open .select-menu{ opacity:1; visibility:visible; transform:translateY(0); }
+
+.select-option{
+  display:flex; align-items:center; gap:.6rem; padding:.55rem .6rem;
+  border-radius:10px; cursor:pointer; color:#212529; font-weight:500; white-space:nowrap;
+}
+.select-option:hover{ background:#f6f7fb; }
+.select-option.active{ background:#e7f0ff; color:#1e66ff; }
+
+.select-dot{
+  width:.6rem; height:.6rem; border-radius:999px; background:#ced4da; display:inline-block;
+}
+.select-option.active .select-dot{ background:#1e66ff; }
+</style>
+<script>
+(function(){
+  const root   = document.getElementById('kategoriSelect');
+  if(!root) return;
+
+  const toggle = root.querySelector('.select-toggle');
+  const label  = root.querySelector('.select-label');
+  const menu   = root.querySelector('.select-menu');
+  const hidden = document.getElementById('kategori_id_hidden');
+
+  // Aç/Kapat
+  toggle.addEventListener('click', ()=>{
+    const open = root.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  // Seçim
+  menu.addEventListener('click', e=>{
+    const opt = e.target.closest('.select-option');
+    if(!opt) return;
+    // aktiflik
+    root.querySelectorAll('.select-option').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+
+    // label & hidden
+    label.textContent = opt.textContent.trim();
+    const val = opt.dataset.value || '';
+    root.dataset.value = val;
+    hidden.value = val;
+
+    // kapat
+    root.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+  });
+
+  // Dışarı tıklayınca kapat
+  document.addEventListener('click', e=>{
+    if(!root.contains(e.target)){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+
+  // ESC ile kapat
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape'){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+})();
+</script>
+
+{% endblock %}

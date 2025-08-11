@@ -1,0 +1,21 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-4">
+    <h2>🔐 Şifre Güncelle</h2>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Mevcut Şifre</label>
+            <input type="password" class="form-control" name="mevcut_sifre" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Yeni Şifre</label>
+            <input type="password" class="form-control" name="yeni_sifre" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Yeni Şifre (Tekrar)</label>
+            <input type="password" class="form-control" name="yeni_sifre_tekrar" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Şifreyi Güncelle</button>
+    </form>
+</div>
+{% endblock %}

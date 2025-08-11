@@ -1,0 +1,69 @@
+{% extends "layout.html" %}
+{% block title %}Şikayet Analizi - SmartYönetici{% endblock %}
+{% block content %}
+<div class="mb-4 p-4 rounded-3 shadow-sm d-flex align-items-center"
+     style="background: linear-gradient(90deg, #e8f5e9 0%, #a5d6a7 100%); border-left: 6px solid #28a745;">
+  <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+       style="width:60px; height:60px; background:#28a745; color:#fff; font-size:1.6rem;">
+    <i class="fas fa-chart-pie"></i>
+  </div>
+  <div>
+    <h2 class="fw-bold text-dark mb-1">Şikayet Analizi</h2>
+    <p class="mb-0 text-muted" style="font-size:0.95rem;">
+      Şikayetlerin kategorilere, önceliklere ve durumlara göre dağılımını görüntüleyin.
+    </p>
+  </div>
+</div>
+
+
+  <div class="row g-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm p-3">
+        <h5 class="text-primary mb-3"><i class="fas fa-tags me-2"></i> Kategoriye Göre Şikayetler</h5>
+        <canvas id="kategoriChart" height="250"></canvas>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="card shadow-sm p-3">
+        <h5 class="text-danger mb-3"><i class="fas fa-exclamation-circle me-2"></i> Önceliğe Göre Şikayetler</h5>
+        <canvas id="oncelikChart" height="250"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  const kategoriData = {
+    labels: {{ kategori_sayilari.keys() | list | tojson }},
+    datasets: [{
+      label: 'Şikayet Sayısı',
+      data: {{ kategori_sayilari.values() | list | tojson }},
+      backgroundColor: ['#007bff', '#dc3545', '#ffc107', '#28a745', '#6c757d', '#6610f2']
+    }]
+  };
+
+  const oncelikData = {
+    labels: {{ oncelik_sayilari.keys() | list | tojson }},
+    datasets: [{
+      label: 'Şikayet Sayısı',
+      data: {{ oncelik_sayilari.values() | list | tojson }},
+      backgroundColor: ['#ff9f40', '#ff6384', '#36a2eb']
+    }]
+  };
+
+  new Chart(document.getElementById('kategoriChart'), {
+    type: 'pie',
+    data: kategoriData
+  });
+
+  new Chart(document.getElementById('oncelikChart'), {
+    type: 'bar',
+    data: oncelikData,
+    options: {
+      indexAxis: 'y'
+    }
+  });
+</script>
+{% endblock %}

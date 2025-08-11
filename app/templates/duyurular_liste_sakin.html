@@ -1,0 +1,426 @@
+{% extends "layout.html" %}
+{% block title %}Duyurular - SmartYönetici{% endblock %}
+{% block content %}
+
+<style>
+  body{ background:#f6f8fc; }
+
+  /* Sayfa başlığı */
+  .page-header{
+    background:linear-gradient(90deg,#fff3e0 0%,#e3f2fd 100%);
+    border-left:6px solid #ff9800;
+    border-radius:16px; padding:1.25rem 1rem; margin-bottom:1rem;
+    box-shadow:0 4px 24px rgba(79,70,229,.08);
+  }
+
+  /* Topbar */
+  .duyuru-topbar{
+    display:flex; justify-content:space-between; align-items:center; gap:12px;
+    background:#fff; border:1px solid rgba(0,0,0,.05);
+    border-radius:16px; padding:.75rem 1rem; margin-bottom:1rem; box-shadow:0 2px 10px rgba(0,0,0,.06);
+  }
+  .duyuru-topbar h5{ margin:0; font-weight:700; color:#212529; }
+
+  /* Custom select */
+  .select.is-custom{ position:relative; min-width:220px; }
+  .select-toggle{
+    width:100%; background:#fff; border:1px solid #ced4da; border-radius:12px;
+    padding:.6rem .9rem; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 2px 8px rgba(0,0,0,.06); transition:all .18s ease;
+  }
+  .select-toggle:hover{ background:#f8f9fa; }
+  .select-toggle:focus{ outline:none; border-color:#1e66ff; box-shadow:0 0 0 .2rem rgba(30,102,255,.15); }
+  .select-label{ font-weight:600; color:#212529; }
+  .select-menu{
+    position:absolute; right:0; left:0; top:calc(100% + 8px);
+    background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:14px;
+    box-shadow:0 16px 36px rgba(0,0,0,.15);
+    padding:.4rem; margin:0; list-style:none; max-height:320px; overflow:auto;
+    opacity:0; visibility:hidden; transform:translateY(-6px); transition:all .18s ease; z-index:20;
+  }
+  .select.is-open .select-menu{ opacity:1; visibility:visible; transform:translateY(0); }
+  .select-option{
+    display:flex; align-items:center; gap:.6rem; padding:.55rem .6rem; border-radius:10px;
+    cursor:pointer; color:#212529; font-weight:500; white-space:nowrap;
+  }
+  .select-option span{ width:1.1rem; display:inline-flex; justify-content:center; }
+  .select-option:hover{ background:#f6f7fb; }
+  .select-option.active{ background:#e7f0ff; color:#1e66ff; }
+
+  /* Liste/Kart görünümü */
+  .duyuru-table-container{ background:#fff; border-radius:16px; box-shadow:0 4px 24px rgba(79,70,229,.08); }
+  .duyuru-table{ width:100%; border-spacing:0 14px; border-collapse:separate; }
+  .duyuru-row td{ padding:0; border:none; }
+  .duyuru-item{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+    background:#fff; border-radius:16px; padding:18px; box-shadow:0 14px 32px rgba(0,0,0,.09);
+    transition:transform .2s ease, box-shadow .2s ease;
+  }
+  .duyuru-item:hover{ transform:translateY(-3px); box-shadow:0 20px 40px rgba(0,0,0,.12); }
+  .duyuru-main{ flex:1 1 auto; min-width:0; }
+  .duyuru-title{ font-size:1.1rem; font-weight:700; color:#212529; }
+  .duyuru-badges{ margin-top:.35rem; display:flex; gap:.4rem; flex-wrap:wrap; }
+  .badge{ display:inline-flex; align-items:center; padding:.35rem .6rem; border-radius:999px; font-weight:600; font-size:.78rem; }
+  .category-badge{ color:#fff; }
+  .category-aidat{ background:#2e7d32; } .category-bakim{ background:#6d4c41; }
+  .category-etkinlik{ background:#8e24aa; } .category-genel{ background:#546e7a; }
+  .category-acil{ background:#d32f2f; } .category-guvenlik{ background:#1565c0; }
+  .ai-badge{ background:#e3f2fd; color:#1e66ff; border:1px solid rgba(30,102,255,.15); }
+  .duyuru-snippet{ margin-top:.5rem; color:#495057; }
+  .duyuru-meta{ margin-top:.55rem; color:#6c757d; display:flex; gap:1.2rem; flex-wrap:wrap; font-size:.95rem; }
+.duyuru-item:hover {
+  box-shadow: 0 8px 20px rgba(255, 152, 0, 0.25);
+}
+
+
+  /* Scroll’lu liste kutusu */
+.duyuru-table-container{
+  background:#fff;
+  border-radius:16px;
+  box-shadow:0 4px 24px rgba(79,70,229,.08);
+  padding: 6px 8px;
+  max-height: 460px;        /* <- yüksekliği sınırla */
+  overflow-y: auto;         /* <- dikey scroll */
+  overflow-x: hidden;
+  scrollbar-gutter: stable; /* içerik zıplamasın */
+  overscroll-behavior: contain;
+}
+
+duyuru-table-container {
+  border-top: 3px solid #ff9800; /* Turuncu başlığa gönderme */
+}
+
+.duyuru-table-container::-webkit-scrollbar {
+  width: 8px;
+}
+.duyuru-table-container::-webkit-scrollbar-thumb {
+  background: #ff9800;
+  border-radius: 10px;
+}
+.duyuru-table-container::-webkit-scrollbar-track {
+  background: #fff3e0;
+}
+
+@media (max-width: 575.98px){
+  .duyuru-table-container{ max-height: 380px; }
+}
+  /* Dropdown (üç nokta) */
+  .dropdown{ position:relative; flex:0 0 auto; }
+  .dropdown-btn{
+    width:40px; height:40px; border:none; border-radius:50%;
+    display:flex; align-items:center; justify-content:center;
+    background:#f1f3f5; color:#495057; transition:all .18s ease;
+    box-shadow:0 2px 6px rgba(0,0,0,.06); cursor:pointer;
+  }
+  .dropdown-btn:hover{ background:#e9ecef; transform:translateY(-1px); }
+  .dropdown-menu{
+    position:absolute; right:0; top:48px; min-width:180px; background:#fff;
+    border-radius:12px; border:1px solid rgba(0,0,0,.06);
+    box-shadow:0 12px 28px rgba(0,0,0,.12); padding:.4rem; display:none; z-index:3;
+  }
+  .dropdown-menu.show{ display:block; }
+  .dropdown-item{
+    width:100%; text-align:left; background:transparent; border:none;
+    padding:.55rem .65rem; border-radius:8px; font-weight:500; color:#212529; cursor:pointer;
+    display:flex; align-items:center; gap:.5rem;
+  }
+  .dropdown-item:hover{ background:#f6f7fb; }
+  .dropdown-divider{ height:1px; background:rgba(0,0,0,.06); margin:.3rem 0; }
+
+  /* Empty state */
+  .empty-state{ text-align:center; padding:48px 16px; color:#6c757d; background:#fff; border-radius:16px;
+                box-shadow:0 10px 24px rgba(0,0,0,.08); }
+  .empty-state i{ font-size:2rem; margin-bottom:.5rem; color:#90a4ae; }
+  #filter-empty-row .empty-state i{ font-size:1.6rem; }
+</style>
+
+<!-- Başlık -->
+<div class="page-header">
+  <div class="d-flex align-items-center">
+    <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+         style="width:56px;height:56px;background:#ff9800;color:#fff;font-size:1.4rem;">
+      <i class="fas fa-bullhorn"></i>
+    </div>
+    <div>
+      <h3 class="fw-bold text-dark mb-0">Yayınlanan Duyurular</h3>
+      <small class="text-muted">Apartman ve site yönetimi için güncel duyurular</small>
+    </div>
+  </div>
+</div>
+
+<!-- Topbar: Custom Select -->
+<div class="duyuru-topbar">
+  <h5 class="fw-bold"><i class="fas fa-bullhorn me-2 text-warning"></i>Tüm Duyurular</h5>
+  <div class="select is-custom" id="kategoriSelect" data-value="">
+    <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+      <span class="select-label">Tüm Kategoriler</span>
+      <i class="fas fa-chevron-down ms-2"></i>
+    </button>
+    <ul class="select-menu" role="listbox">
+      <li class="select-option active" data-value=""><span>🗂️</span> Tüm Kategoriler</li>
+      <li class="select-option" data-value="aidat"><span>💰</span> Aidat</li>
+      <li class="select-option" data-value="bakim"><span>🔧</span> Bakım</li>
+      <li class="select-option" data-value="etkinlik"><span>🎉</span> Etkinlik</li>
+      <li class="select-option" data-value="genel"><span>📋</span> Genel</li>
+      <li class="select-option" data-value="acil"><span>🚨</span> Acil</li>
+      <li class="select-option" data-value="guvenlik"><span>🛡️</span> Güvenlik</li>
+    </ul>
+  </div>
+</div>
+
+<!-- Liste -->
+<div class="duyuru-table-container">
+  <table class="duyuru-table" id="duyuruTable">
+    <tbody>
+      {% for duyuru in duyurular %}
+      <tr class="duyuru-row" data-kategori="{{ duyuru.kategori }}">
+        <td>
+          <div class="duyuru-item">
+            <div class="duyuru-main">
+              <div class="duyuru-title">{{ duyuru.baslik }}</div>
+              <div class="duyuru-badges">
+                <span class="badge category-badge category-{{ duyuru.kategori|lower }}">{{ duyuru.kategori }}</span>
+                {% if duyuru.ai_olusturuldu %}<span class="badge ai-badge">AI</span>{% endif %}
+              </div>
+              <div class="duyuru-snippet">
+                {% if duyuru.icerik|length > 120 %}{{ duyuru.icerik[:120] }}…{% else %}{{ duyuru.icerik }}{% endif %}
+              </div>
+              <div class="duyuru-meta">
+                <span><i class="fas fa-user me-1"></i>Yönetici</span>
+                <span><i class="fas fa-calendar-alt me-1"></i>{{ duyuru.yayinlanma_tarihi.strftime("%d.%m.%Y") }}</span>
+                <span><i class="fas fa-eye me-1"></i>{{ duyuru.goruntulenme_sayisi }}</span>
+              </div>
+            </div>
+
+            <div class="dropdown">
+              <button class="dropdown-btn" onclick="toggleDropdown(this)" aria-label="Duyuru İşlemleri">
+                <i class="fas fa-ellipsis-v"></i>
+              </button>
+              <div class="dropdown-menu">
+                <button class="dropdown-item"
+                        onclick="window.location.href='{{ url_for('main.duyuru_goruntule', id=duyuru.id) }}'">
+                  <i class="fas fa-eye"></i> Görüntüle
+                </button>
+                {% if session.get('rol') == 'yonetici' %}
+                <button class="dropdown-item"
+                        onclick="window.location.href='{{ url_for('main.duyuru_duzenle', id=duyuru.id) }}'">
+                  <i class="fas fa-pen"></i> Düzenle
+                </button>
+                <div class="dropdown-divider"></div>
+                <button class="dropdown-item text-danger"
+                        onclick="confirmDelete('{{ url_for('main.duyuru_sil', id=duyuru.id) }}')">
+                  <i class="fas fa-trash"></i> Sil
+                </button>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td>
+          <div class="empty-state">
+            <i class="fas fa-inbox"></i>
+            <h5>Henüz duyuru bulunmuyor</h5>
+            <p>İlk duyuruyu oluşturmak için yönetici panelini kullanın.</p>
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+/* === FİLTRE === */
+function filterKategori(val){
+  let selected = (val ?? "").toString().toLowerCase();
+  if(!selected){
+    const custom = document.getElementById("kategoriSelect");
+    if(custom && custom.dataset && typeof custom.dataset.value === "string"){
+      selected = custom.dataset.value.toLowerCase();
+    }
+  }
+  const rows = document.querySelectorAll("#duyuruTable .duyuru-row");
+  let visibleCount = 0;
+  rows.forEach(row=>{
+    const k = (row.dataset.kategori || "").toLowerCase();
+    const show = !selected || k === selected;
+    row.style.display = show ? "" : "none";
+    if(show) visibleCount++;
+  });
+  const tbody = document.querySelector("#duyuruTable tbody");
+  if(!tbody) return;
+  let empty = document.getElementById("filter-empty-row");
+  if(visibleCount === 0){
+    if(!empty){
+      empty = document.createElement("tr");
+      empty.id = "filter-empty-row";
+      empty.innerHTML = `
+        <td>
+          <div class="empty-state" style="padding:2.5rem 1rem;">
+            <i class="fas fa-search"></i>
+            <h5 style="margin-top:.5rem;">Filtreye uygun duyuru bulunamadı</h5>
+            <p>Başka bir kategori seçmeyi deneyin.</p>
+          </div>
+        </td>`;
+      tbody.appendChild(empty);
+    }
+  }else if(empty){ empty.remove(); }
+}
+
+/* === CUSTOM SELECT === */
+(function(){
+  const root = document.getElementById('kategoriSelect');
+  if(!root) return;
+  const toggle = root.querySelector('.select-toggle');
+  const label  = root.querySelector('.select-label');
+  const menu   = root.querySelector('.select-menu');
+
+  toggle.addEventListener('click', ()=>{
+    const open = root.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  menu.addEventListener('click', e=>{
+    const opt = e.target.closest('.select-option');
+    if(!opt) return;
+    const val = (opt.dataset.value || '').toLowerCase();
+
+    root.querySelectorAll('.select-option').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+
+    label.textContent = opt.textContent.trim();
+    root.dataset.value = val;
+    root.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+
+    filterKategori(val);
+  });
+
+  document.addEventListener('click', e=>{
+    if(!root.contains(e.target)){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+
+  // sayfa ilk yüklemede
+  document.addEventListener('DOMContentLoaded', ()=>filterKategori());
+})();
+
+/* === DROPDOWN (üç nokta) === */
+function toggleDropdown(btn){
+  const menu = btn.nextElementSibling;
+  document.querySelectorAll('.dropdown .dropdown-menu').forEach(m=>{
+    if(m !== menu) m.classList.remove('show');
+  });
+  menu.classList.toggle('show');
+}
+document.addEventListener('click', e=>{
+  if(!e.target.closest('.dropdown')){
+    document.querySelectorAll('.dropdown .dropdown-menu').forEach(m=>m.classList.remove('show'));
+  }
+});
+document.addEventListener('keydown', e=>{
+  if(e.key === 'Escape'){
+    document.querySelectorAll('.dropdown .dropdown-menu').forEach(m=>m.classList.remove('show'));
+  }
+});
+
+/* Sil onayı */
+function confirmDelete(url){
+  if(confirm('Bu duyuruyu silmek istediğinize emin misiniz?')){
+    window.location.href = url;
+  }
+}
+</script>
+<!-- İstatistikler (Akıllı Sorgu style) -->
+<!-- Statistics Cards (Akıllı Sorgu stili) -->
+<div class="row g-4 stats-container mb-4 align-items-stretch">
+  {% set stats = [
+      {"icon": "fa-bullhorn",    "color": "primary", "value": toplam_duyuru or 0,         "label": "Toplam Duyuru"},
+      {"icon": "fa-robot",       "color": "success", "value": ai_duyuru_sayisi or 0,      "label": "AI Oluşturuldu"},
+      {"icon": "fa-eye",         "color": "info",    "value": toplam_goruntulenme or 0,   "label": "Toplam Görüntülenme"},
+      {"icon": "fa-calendar-alt","color": "warning", "value": bu_ay_eklenen or 0,         "label": "Bu Ay"}
+  ] %}
+  {% set color_map = {
+    'primary':'#1e66ff',  'success':'#2e7d32',
+    'info':'#11b6e4',     'warning':'#f6b400'
+  } %}
+  {% for stat in stats %}
+    {% set c = color_map[stat.color] if stat.color in color_map else '#3f51b5' %}
+    <div class="col-lg-3 col-md-6">
+      <div class="ask-stat-card h-100">
+        <div class="ask-icon" style="--c: {{ c }};">
+          <i class="fas {{ stat.icon }}"></i>
+        </div>
+        <div class="ask-label" style="color: {{ c }};">{{ stat.label }}</div>
+        <div class="ask-value" style="color: {{ c }};" data-count="{{ stat.value }}">0</div>
+      </div>
+    </div>
+  {% endfor %}
+</div>
+
+<style>
+/* Kart */
+.ask-stat-card{
+  background:#fff;
+  border-radius:24px;
+  padding:28px 20px;
+  text-align:center;
+  box-shadow:0 14px 32px rgba(0,0,0,.12);
+  transition:transform .2s ease, box-shadow .2s ease;
+  border:0;
+}
+.ask-stat-card:hover{
+  transform:translateY(-4px);
+  box-shadow:0 20px 40px rgba(0,0,0,.16);
+}
+/* İkon yuvarlağı */
+.ask-icon{
+  --c:#3f51b5; /* fallback */
+  width:64px;height:64px;margin:0 auto 12px;
+  border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:1.35rem;
+  background:
+    radial-gradient(circle at 30% 30%, rgba(255,255,255,.35), transparent 0%),
+    linear-gradient(135deg, var(--c), color-mix(in srgb, var(--c), #ffffff 18%));
+  box-shadow:
+    0 10px 18px color-mix(in srgb, var(--c), #000 75% / 18%),
+    inset 0 0 0 4px rgba(255,255,255,.18);
+}
+/* Metinler */
+.ask-label{ font-weight:600; font-size:1.1rem; margin-bottom:8px; }
+.ask-value{ font-weight:800; font-size:1.75rem; letter-spacing:.3px; }
+/* Eş yükseklik */
+.row.g-4 > [class*="col-"] .ask-stat-card{ height:100%; }
+</style>
+
+<script>
+/* 0 → hedef sayı animasyonu (%, s gibi suffix’leri korur) */
+document.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.ask-value[data-count]').forEach(el => {
+    const raw = (el.getAttribute('data-count') || '0') + '';
+    const num = Number(raw.replace(/[^\d.]/g,'')) || 0;
+    const suffix = raw.replace(String(num),'');
+    const dur = 900; let start;
+    const tick = t => {
+      start ??= t;
+      const p = Math.min((t - start)/dur, 1);
+      const val = suffix.includes('%') ? Math.round(num*p) : Math.floor(num*p);
+      el.textContent = val + suffix;
+      if (p < 1) requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+});
+</script>
+
+
+
+
+
+{% endblock %}

@@ -1,0 +1,208 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="page-header p-4 mb-4 rounded-3 shadow-sm"
+     style="background: linear-gradient(90deg, #e8f5e9 0%, #e3f2fd 100%); border-left: 6px solid #4caf50;">
+  <div class="d-flex align-items-center">
+    
+    <!-- İkon -->
+    <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+         style="width:60px; height:60px; background:#4caf50; color:#fff; font-size:1.6rem;">
+      <i class="fas fa-wallet"></i>
+    </div>
+    
+    <!-- Başlık ve Açıklama -->
+    <div>
+      <h2 class="fw-bold text-dark mb-1">Aidat Ödeme</h2>
+      <p class="mb-0 text-muted" style="font-size:0.95rem;">
+        Aidat ödemenizi kolayca yapın ve geçmiş ödemelerinizi görüntüleyin.
+      </p>
+    </div>
+    
+  </div>
+</div>
+
+  
+
+    <!-- Mail Gönder (Simülasyon) Butonu -->
+    <form action="{{ url_for('main.mail_goster') }}" method="get" class="mb-4">
+        <button class="btn btn-warning">📬 Mail Gönder (Simülasyon)</button>
+    </form>
+
+    {% if aidatlar %}
+    <table class="table table-bordered aidat-table">
+        <thead>
+            <tr>
+                <th>Dönem</th>
+                <th>Tutar</th>
+                <th>Son Ödeme Tarihi</th>
+                <th>Durum</th>
+                <th>İşlem</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for aidat in aidatlar %}
+            <tr>
+                <td>{{ aidat.aciklama }}</td>
+                <td>{{ aidat.tutar }} ₺</td>
+                <td>{{ aidat.vade_tarihi.strftime('%Y-%m-%d') }}</td>
+                <td>
+                    {% if aidat.odendi %}
+                    <span class="badge bg-success">Ödendi</span>
+                    {% else %}
+                    <span class="badge bg-danger">Ödenmedi</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not aidat.odendi %}
+                    <form method="POST">
+                        <input type="hidden" name="aidat_id" value="{{ aidat.id }}">
+                       <button class="btn btn-sm btn-warning">
+  <i class="fas fa-check-circle"></i> Öde
+</button>
+                    </form>
+                    {% else %}
+                    -
+                    {% endif %}
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+    {% else %}
+    <div class="alert alert-info">Ödenmemiş aidat bulunmamaktadır.</div>
+    {% endif %}
+    <!-- Bilgilendirici Kartlar -->
+<div class="row g-4 mt-4 usage-cards">
+  <!-- 1) Nasıl Kullanılır -->
+  <div class="col-md-4">
+    <div class="card h-100 border-0 shadow-sm card-green">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <div class="icn me-2"><i class="fas fa-info-circle"></i></div>
+          <h5 class="mb-0">Bu Sayfayı Nasıl Kullanırım?</h5>
+        </div>
+        <ul class="card-text text-muted mb-3" style="color:black">  
+          <li>Listeden <strong>Dönem ve Tutar</strong> bilgilerini kontrol edin.</li>
+          <li>Durumu <span class="badge bg-danger">Ödenmedi</span> olan satırlarda <strong>Öde</strong> butonuna tıklayın.</li>
+          <li>Ödeme sonrası tablo otomatik güncellenir; durum <span class="badge bg-success">Ödendi</span> olur.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 2) Ödeme Yöntemleri -->
+  <div class="col-md-4">
+    <div class="card h-100 border-0 shadow-sm card-blue">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <div class="icn me-2"><i class="fas fa-credit-card"></i></div>
+          <h5 class="mb-0">Ödeme Yöntemleri</h5>
+        </div>
+        <ul class="card-text text-muted mb-3">
+          <li><strong>Kart ile:</strong> Kredi/Banka kartı – 3D Secure destekli.</li>
+          <li><strong>Havale/EFT:</strong> Açıklamaya <em>Daire No + Dönem</em> yazın.</li>
+          <li><strong>Kapıda/Ofiste:</strong> Yönetime elden ödeme (makbuzlu).</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- 3) Güvenlik & İpuçları -->
+  <div class="col-md-4">
+    <div class="card h-100 border-0 shadow-sm card-amber">
+      <div class="card-body">
+        <div class="d-flex align-items-center mb-2">
+          <div class="icn me-2"><i class="fas fa-shield-alt"></i></div>
+          <h5 class="mb-0">Güvenlik ve İpuçları</h5>
+        </div>
+        <ul class="card-text text-muted mb-3">
+          <li>Ödemeyi yalnızca bu sayfadan başlatın; şüpheli linklere tıklamayın.</li>
+          <li>Ödeme sonrası e-posta bildirimini kontrol edin.</li>
+          
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+
+
+<style>
+.aidat-table thead th {
+    background-color: #2e7d32 !important;
+    color: black !important;
+}</style>
+
+
+
+
+<style>
+    /* Kartların genel görünümü */
+.usage-cards .card {
+  border-radius: 20px; /* Daha yuvarlak köşe */
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.usage-cards .card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.08);
+}
+
+/* Üstte daire ikon */
+.usage-cards .icn {
+  width: 60px;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%; /* Tam daire */
+  font-size: 1.4rem;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* Yeşil kart */
+.card-green .icn {
+  background: #e8f5e9;
+  color: #4caf50;
+}
+.card-green .card-body {
+  background: linear-gradient(180deg, #e8f5e9 0%, #f3fbf4 100%);
+  border-left: none;
+}
+
+/* Mavi kart */
+.card-blue .icn {
+  background: #e3f2fd;
+  color: #2196f3;
+}
+.card-blue .card-body {
+  background: linear-gradient(180deg, #e3f2fd 0%, #f4f8ff 100%);
+  border-left: none;
+}
+
+/* Amber kart */
+.card-amber .icn {
+  background: #fff3e0;
+  color: #ff9800;
+}
+.card-amber .card-body {
+  background: linear-gradient(180deg, #fff3e0 0%, #fff8e6 100%);
+  border-left: none;
+}
+
+/* Yazı düzeni */
+.usage-cards h5 {
+  font-weight: bold;
+  margin-top: 0.8rem;
+}
+.usage-cards ul {
+  padding-left: 1.2rem;
+  line-height: 1.5;
+}
+
+
+</style>
+
+
+
+{% endblock %}

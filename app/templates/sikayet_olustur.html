@@ -1,0 +1,116 @@
+{% extends "layout.html" %}
+{% block title %}Şikayet Oluştur - SmartYönetici{% endblock %}
+
+{% block content %}
+
+<div class="container py-2">
+
+  <!-- Başlık Alanı -->
+  <div class="mb-4 p-4 rounded-4 shadow-sm"
+       style="background: linear-gradient(90deg, #fff3f3 0%, #ffe6e6 100%); border-left: 6px solid #dc3545;">
+    <div class="d-flex align-items-center">
+      <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+           style="width:60px; height:60px; background:#dc3545; color:#fff; font-size:1.6rem;">
+        <i class="fas fa-exclamation-triangle"></i>
+      </div>
+      <div>
+        <h3 class="fw-bold text-dark mb-1">Şikayet Oluştur</h3>
+        <p class="mb-0 text-muted">Yaşadığınız sorunu detaylıca iletin, yönetim sizinle ilgilensin.</p>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- Bilgilendirme Kutusu -->
+  <div class="alert alert-warning border-0 rounded-4 shadow-sm mb-4">
+    <h5 class="fw-bold"><i class="fas fa-info-circle me-2"></i> Şikayet Öncesi Bilgilendirme</h5>
+    <ul class="mb-0 ps-3">
+      <li>Şikayetinizi <strong>mümkün olduğunca açık ve net</strong> bir şekilde yazınız.</li>
+      <li>Hakaret, küfür veya kişisel bilgi içeren metinler kabul edilmez.</li>
+      <li>Fotoğraf veya belge eklemek, çözüm süresini hızlandırabilir.</li>
+      <li>Şikayetler genellikle <strong>3 iş günü</strong> içerisinde değerlendirilir ve durum bilgisi size iletilir.</li>
+    </ul>
+  </div>
+
+
+  <div class="row g-4">
+    
+    <!-- Sol Sütun: Form -->
+    <div class="col-lg-8">
+      <div class="card shadow border-0 rounded-4 p-4">
+        
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+              </div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+
+        <form method="POST" class="needs-validation" novalidate>
+          <div class="mb-4">
+            <label for="metin" class="form-label fw-bold text-dark">
+              <i class="fas fa-pen me-1 text-danger"></i> Şikayet Metni
+            </label>
+            <textarea name="metin" id="metin" class="form-control form-control-lg rounded-3 shadow-sm border-danger"
+                      rows="6" placeholder="Yaşadığınız sorunu detaylıca açıklayın..." required></textarea>
+            <div class="invalid-feedback">Lütfen şikayetinizi yazınız.</div>
+          </div>
+
+          <div class="alert alert-light border shadow-sm rounded-3 mb-4">
+            <i class="fas fa-robot me-2 text-primary"></i>
+            <small>Yapay zeka, şikayet metninizden otomatik olarak kategori ve öncelik seviyesini belirleyecektir.</small>
+          </div>
+
+          <div class="d-flex justify-content-between">
+            <a href="{{ url_for('main.dashboard_' + session.get('rol','')) }}" class="btn btn-danger btn-lg px-5 rounded-pill shadow">
+              <i class="fas fa-arrow-left me-2"></i> Geri Dön
+            </a>
+            <button type="submit" class="btn btn-danger btn-lg px-5 rounded-pill shadow">
+              <i class="fas fa-paper-plane me-2"></i> Gönder
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- Sağ Sütun: Kartlar + Bilgilendirme -->
+    <div class="col-lg-4 d-flex flex-column gap-3">
+
+      <!-- Kart 1 -->
+      <div class="card text-white bg-primary shadow rounded-4">
+        <div class="card-body text-center">
+          <i class="fas fa-list fa-2x mb-2"></i>
+          <h5 class="card-title">Toplam Şikayet</h5>
+          <h3 class="fw-bold">{{ toplam_sikayet or 0 }}</h3>
+        </div>
+      </div>
+
+      <!-- Kart 2 -->
+      <div class="card text-white bg-warning shadow rounded-4">
+        <div class="card-body text-center">
+          <i class="fas fa-hourglass-half fa-2x mb-2"></i>
+          <h5 class="card-title">Bekleyen Şikayet</h5>
+          <h3 class="fw-bold">{{ bekleyen_sikayet or 0 }}</h3>
+        </div>
+      </div>
+
+      <!-- Kart 3 -->
+      <div class="card text-white bg-success shadow rounded-4">
+        <div class="card-body text-center">
+          <i class="fas fa-check-circle fa-2x mb-2"></i>
+          <h5 class="card-title">Çözülmüş Şikayet</h5>
+          <h3 class="fw-bold">{{ cozulen_sikayet or 0 }}</h3>
+        </div>
+      </div>
+
+    
+
+
+  </div>
+</div>
+{% endblock %}
+

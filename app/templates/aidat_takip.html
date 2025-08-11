@@ -1,0 +1,335 @@
+{% extends "layout.html" %}
+
+{% block title %}Aidat Takip{% endblock %}
+
+{% block content %}
+<div class="mb-4 p-4 rounded-3 shadow-sm d-flex align-items-center"
+     style="background: linear-gradient(90deg, #fff8e1 0%, #ffe082 100%); border-left: 6px solid #ff9800;">
+  <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+       style="width:60px; height:60px; background:#ff9800; color:#fff; font-size:1.6rem;">
+    <i class="fas fa-coins"></i>
+  </div>
+  <div>
+    <h2 class="fw-bold text-dark mb-1">Aidat Takip</h2>
+    <p class="mb-0 text-muted" style="font-size:0.95rem;">
+      Aidat ödemelerini ve ödeme oranlarını buradan görüntüleyebilirsiniz.
+    </p>
+  </div>
+</div>
+
+
+
+<style>
+.select.is-custom{ position:relative; width:200px; }
+.select-toggle{
+  width:100%; background:#fff; border:1.5px solid #e0e7ff; border-radius:12px;
+  padding:.6rem .9rem; display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 2px 8px rgba(0,0,0,.06); transition:all .18s ease;
+}
+.select-toggle:hover{ background:#f8faff; }
+.select-toggle:focus{ outline:none; border-color:#1e66ff; box-shadow:0 0 0 .2rem rgba(30,102,255,.12); }
+.select-label{ font-weight:600; color:#212529; }
+.select-menu{
+  position:absolute; right:0; left:0; top:calc(100% + 8px);
+  background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:14px;
+  box-shadow:0 16px 36px rgba(0,0,0,.12);
+  padding:.4rem; margin:0; list-style:none; max-height:320px; overflow:auto;
+  opacity:0; visibility:hidden; transform:translateY(-6px);
+  transition:all .18s ease; z-index:20;
+}
+.select.is-open .select-menu{ opacity:1; visibility:visible; transform:translateY(0); }
+.select-option{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.6rem .7rem; border-radius:10px; cursor:pointer;
+  color:#212529; font-weight:500; white-space:nowrap;
+}
+.select-option span{ width:1.1rem; display:inline-flex; justify-content:center; }
+.select-option:hover{ background:#f0f4ff; }
+.select-option.active{ background:#e7f0ff; color:#1e66ff; }
+</style>
+
+
+
+<!-- Özet Kartlar -->
+<div class="row g-4 mb-4">
+
+    <!-- Toplam Aidat -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow rounded-4 text-center border-0 dashboard-card h-100 bg-primary text-white">
+            <div class="card-body py-4">
+                <h5 class="card-title fw-semibold">Toplam Aidat</h5>
+                <p class="card-text fs-4">{{ toplam_tutar }} ₺</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aidat Sayısı -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow rounded-4 text-center border-0 dashboard-card h-100 bg-success text-white">
+            <div class="card-body py-4">
+                <h5 class="card-title fw-semibold">Aidat Sayısı</h5>
+                <p class="card-text fs-4">{{ toplam_sayi }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ödenen -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow rounded-4 text-center border-0 dashboard-card h-100 bg-warning text-dark">
+            <div class="card-body py-4">
+                <h5 class="card-title fw-semibold">Ödenen</h5>
+                <p class="card-text fs-4">{{ odeme_sayisi }}</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ödeme Oranı -->
+    <div class="col-md-6 col-xl-3">
+        <div class="card shadow rounded-4 text-center border-0 dashboard-card h-100 bg-info text-white">
+            <div class="card-body py-4">
+                <h5 class="card-title fw-semibold">Ödeme Oranı</h5>
+                <p class="card-text fs-4">{{ oran }}%</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+<style>
+    .dashboard-card {
+    transition: transform .2s ease, box-shadow .2s ease;
+}
+.dashboard-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+</style>
+
+
+<!-- Grafik -->
+{% if chart_labels and chart_values %}
+<div class="card mb-4">
+    <div class="card-body">
+        <canvas id="aidatChart" height="100"></canvas>
+    </div>
+</div>
+
+{% block extra_head %}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const ctx = document.getElementById('aidatChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels| tojson }},
+        datasets: [{
+            label: 'Ödenen Aidat Sayısı',
+            data: {{ chart_values| tojson }},
+        backgroundColor: 'rgba(54, 162, 235, 0.5)',
+        borderColor: 'rgba(54, 162, 235, 1)',
+        borderWidth: 1
+                    }]
+                },
+        options: {
+        scales: {
+            y: { beginAtZero: true }
+        }
+    }
+            });
+        });
+</script>
+{% endblock %}
+{% endif %}
+
+<!-- Dönem Filtresi -->
+<form method="get" class="mb-4">
+  <div class="row g-2 align-items-center">
+    <div class="col-auto">
+      <label for="donemSelect" class="form-label mb-0 fw-semibold">
+        <i class="fas fa-calendar-alt me-1"></i> Dönem:
+      </label>
+    </div>
+    <div class="col-auto">
+      <!-- Gizli input -->
+      <input type="hidden" name="donem" id="donemHidden" value="{{ secili_donem or '' }}">
+
+      <!-- Custom Select -->
+      <div class="select is-custom" id="donemSelect" data-value="{{ secili_donem or '' }}">
+        <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <span class="select-label">
+            {% if secili_donem %} {{ secili_donem }} {% else %} Dönem seçiniz... {% endif %}
+          </span>
+          <i class="fas fa-chevron-down ms-2"></i>
+        </button>
+        <ul class="select-menu" role="listbox">
+          <li class="select-option" data-value=""><span>📅</span> Tüm Dönemler</li>
+          {% for donem in donemler %}
+          <li class="select-option {% if donem==secili_donem %}active{% endif %}" data-value="{{ donem }}">
+            <span>📆</span> {{ donem }}
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+</form>
+
+<script>
+(function(){
+  const root   = document.getElementById('donemSelect');
+  if(!root) return;
+  const toggle = root.querySelector('.select-toggle');
+  const label  = root.querySelector('.select-label');
+  const menu   = root.querySelector('.select-menu');
+  const hidden = document.getElementById('donemHidden');
+
+  toggle.addEventListener('click', ()=>{
+    const open = root.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  menu.addEventListener('click', e=>{
+    const opt = e.target.closest('.select-option');
+    if(!opt) return;
+    root.querySelectorAll('.select-option').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+    const val = opt.dataset.value || '';
+    label.textContent = opt.textContent.trim();
+    root.dataset.value = val;
+    hidden.value = val;
+    root.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+    root.closest('form').submit(); // otomatik form gönder
+  });
+
+  document.addEventListener('click', e=>{
+    if(!root.contains(e.target)){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+})();
+</script>
+
+
+
+<!-- Aidat Tablosu (Geliştirilmiş) -->
+<table class="table table-bordered table-hover align-middle mb-0 aidat-table aidat-theme-gelir">
+    <thead class="sticky-head">
+        <tr>
+            <th>Daire No</th>
+            <th>Sakin Adı</th>
+            <th>Dönem</th>
+            <th>Tutar</th>
+            <th>Vade</th>
+            <th>Ödendi mi</th>
+            <th class="text-nowrap">Ödeme Tarihi</th>
+            <th>Risk Skoru</th>
+        </tr>
+    </thead>
+
+    <tbody>
+      {% if aidatlar and aidatlar|length > 0 %}
+        {% for a in aidatlar %}
+        {% set odendi_rozeti = 'success' if a.odendi else 'danger' %}
+        {% set risk_lower = (a.risk or '')|lower %}
+        {% set risk_rozeti =
+            'success' if 'düşük' in risk_lower else
+            'warning' if 'orta' in risk_lower else
+            'danger' if 'yüksek' in risk_lower else
+            'secondary'
+        %}
+        <tr class="aidat-row">
+          <td class="fw-semibold">{{ a.daire_no }}</td>
+          <td>{{ a.sakin_adi }}</td>
+          <td>{{ a.donem }}</td>
+
+          <!-- Para: sağa hizalı, ince font -->
+          <td >
+            <span class="fw-semibold">{{ '{:,.0f}'.format(a.tutar|float) }} ₺</span>
+          </td>
+
+          <!-- Tarihler: dar kolonlar için nowrap -->
+          <td class="text-nowrap">
+            {{ a.vade.strftime('%Y-%m-%d') if a.vade else '-' }}
+          </td>
+
+          <td>
+            <span class="badge rounded-pill text-bg-{{ odendi_rozeti }}">
+              {{ 'Evet' if a.odendi else 'Hayır' }}
+            </span>
+          </td>
+
+          <td class="text-nowrap">
+            {{ a.odeme_tarihi.strftime('%Y-%m-%d') if a.odeme_tarihi else '-' }}
+          </td>
+
+          <td>
+            <span class="badge rounded-pill text-bg-{{ risk_rozeti }}">
+              {{ a.risk or 'Bilinmiyor' }}
+            </span>
+          </td>
+        </tr>
+        {% endfor %}
+      {% else %}
+        <tr>
+          <td colspan="8" class="text-center text-muted py-4">
+            Kayıt bulunamadı.
+          </td>
+        </tr>
+      {% endif %}
+    </tbody>
+  </table>
+</div>
+<style>
+  /* Tablonun genel arka planı beyaz */
+.aidat-table.aidat-theme-gelir {
+  background-color: #fff !important;
+}
+
+/* Yeşil başlık */
+.aidat-table.aidat-theme-gelir thead.sticky-head th {
+  background: #2e7d32 !important; /* koyu yeşil */
+  color: black !important;
+  border-color: rgba(255,255,255,.2) !important;
+}
+
+/* Yeşil çizgili satırlar */
+.aidat-table.aidat-theme-gelir.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: rgba(46, 125, 50, 0.08) !important; /* açık yeşil tonu */
+}
+
+.aidat-table.aidat-theme-gelir.table-striped > tbody > tr:hover {
+  background-color: rgba(46, 125, 50, 0.15) !important; /* hover için biraz daha koyu yeşil */
+}
+
+/* Alternatif tema: Gider (koyu kırmızı) */
+.aidat-table.aidat-theme-gider thead.sticky-head th {
+  background: #c62828 !important;
+  color: #fff !important;
+}
+
+/* Alternatif tema: Mavi */
+.aidat-table.aidat-theme-info thead.sticky-head th {
+  background: #1565c0 !important;
+  color: #fff !important;
+}
+
+/* Çizgili satırlar (table-striped uyumlu) */
+.table-striped > tbody > tr:nth-of-type(odd) {
+  background-color: rgba(0, 0, 0,0); /* hafif gri */
+}
+
+.table-striped > tbody > tr:hover {
+  background-color: rgba(0, 0, 0, 0.06); /* hover rengi */
+}
+
+
+
+
+
+@media (max-width: 575.98px) {
+  .table td, .table th { font-size: .95rem; }
+  
+}
+</style>
+{% endblock %}

@@ -1,0 +1,200 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-5">
+  <h3 class="mb-4"><i class="fas fa-plus-circle me-2"></i> Gider Ekle</h3>
+
+  <form method="POST" class="row g-3">
+
+    <!-- KATEGORİ (Özel Dropdown) -->
+    <div class="col-md-6">
+      <label class="form-label">Kategori</label>
+
+      <div class="select is-custom" id="kategoriSelect"
+           data-initial-value="{{ request.form.get('kategori_id','') }}">
+        <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <span class="select-label">Seçiniz</span>
+          <i class="fas fa-chevron-down ms-2"></i>
+        </button>
+        <ul class="select-menu" role="listbox">
+          <li class="select-option" data-value=""><span>📁</span> Seçiniz</li>
+          {% if kategoriler and kategoriler|length > 0 %}
+            {% for k in kategoriler %}
+              <li class="select-option" data-value="{{ k.id }}"><span>🏷️</span> {{ k.ad }}</li>
+            {% endfor %}
+          {% else %}
+            <li class="select-option" data-value="" disabled style="opacity:.6;cursor:not-allowed;">
+              (Kategori bulunamadı)
+            </li>
+          {% endif %}
+        </ul>
+        <!-- Form’a gönderilecek gerçek değer -->
+        <input type="hidden" name="kategori_id" id="kategori_id" value="{{ request.form.get('kategori_id','') }}">
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <label for="aciklama" class="form-label">Açıklama</label>
+      <input type="text" class="form-control" id="aciklama" name="aciklama"
+             value="{{ request.form.get('aciklama','') }}" required>
+    </div>
+
+    <div class="col-md-6">
+      <label for="tutar" class="form-label">Tutar (₺)</label>
+      <input type="number" step="0.01" class="form-control" id="tutar" name="tutar"
+             value="{{ request.form.get('tutar','') }}" required>
+    </div>
+
+    <div class="col-md-6">
+      <label for="tarih" class="form-label">Tarih</label>
+      <input type="date" class="form-control" id="tarih" name="tarih"
+             value="{{ request.form.get('tarih','') }}" required>
+    </div>
+
+    <div class="col-md-6">
+      <label for="fatura_no" class="form-label">Fatura No</label>
+      <input type="text" class="form-control" id="fatura_no" name="fatura_no"
+             value="{{ request.form.get('fatura_no','') }}">
+    </div>
+
+    <div class="col-md-6">
+      <label for="tedarikci" class="form-label">Tedarikçi</label>
+      <input type="text" class="form-control" id="tedarikci" name="tedarikci"
+             value="{{ request.form.get('tedarikci','') }}">
+    </div>
+
+    <!-- AI RİSK SKORU (Özel Dropdown) -->
+    <div class="col-md-6">
+      <label class="form-label">AI Risk Skoru</label>
+
+      <div class="select is-custom" id="riskSelect"
+           data-initial-value="{{ request.form.get('ai_risk_skoru','') }}">
+        <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+          <span class="select-label">(opsiyonel)</span>
+          <i class="fas fa-chevron-down ms-2"></i>
+        </button>
+        <ul class="select-menu" role="listbox">
+          <li class="select-option" data-value=""><span>🤖</span> (opsiyonel)</li>
+          <li class="select-option" data-value="Yüksek"><span>🔴</span> Yüksek</li>
+          <li class="select-option" data-value="Normal"><span>🟡</span> Normal</li>
+          <li class="select-option" data-value="Düşük"><span>🟢</span> Düşük</li>
+        </ul>
+        <input type="hidden" name="ai_risk_skoru" id="ai_risk_skoru" value="{{ request.form.get('ai_risk_skoru','') }}">
+      </div>
+    </div>
+
+    <div class="col-12 mt-3">
+      <button type="submit" class="btn btn-primary">
+        <i class="fas fa-save me-2"></i> Kaydet
+      </button>
+      <a href="{{ url_for('main.gelir_gider') }}" class="btn btn-secondary">İptal</a>
+    </div>
+  </form>
+</div>
+
+<!-- === Custom Select STYLES (diğer sayfalarla aynı family) === -->
+<style>
+.select.is-custom{ position:relative; min-width:220px; }
+.select-toggle{
+  width:100%; background:#fff; border:1.5px solid #d0e2ff; border-radius:14px;
+  padding:.65rem .9rem; display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 4px 10px rgba(0,0,0,.06); transition:all .18s ease;
+  font-weight:600; color:#212529;
+}
+.select-toggle:hover{ background:#f8f9fe; border-color:#64b5f6; box-shadow:0 6px 14px rgba(100,181,246,.18); }
+.select-toggle:focus{ outline:none; border-color:#1e66ff; box-shadow:0 0 0 .2rem rgba(30,102,255,.18); }
+.select-label{ display:inline-flex; align-items:center; }
+
+.select-menu{
+  position:absolute; right:0; left:0; top: calc(100% + 8px);
+  background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:16px;
+  box-shadow:0 18px 38px rgba(0,0,0,.16);
+  padding:.5rem; margin:0; list-style:none;
+  opacity:0; visibility:hidden; transform:translateY(-6px);
+  transition:all .18s ease; z-index:30; max-height:320px; overflow:auto;
+}
+.select.is-open .select-menu{ opacity:1; visibility:visible; transform:translateY(0); }
+
+.select-option{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.6rem .7rem; border-radius:12px; cursor:pointer;
+  color:#212529; font-weight:600; white-space:nowrap;
+}
+.select-option span{ width:1.2rem; display:inline-flex; justify-content:center; }
+.select-option:hover{ background:#f6f7fb; }
+.select-option.active{ background:#e7f0ff; color:#1e66ff; }
+
+.select-menu::-webkit-scrollbar{ width:8px; }
+.select-menu::-webkit-scrollbar-thumb{ background:#ffd180; border-radius:8px; }
+</style>
+
+<!-- === Custom Select JS === -->
+<script>
+function initCustomSelect(rootId, hiddenId, placeholderText){
+  const root   = document.getElementById(rootId);
+  if(!root) return;
+  const toggle = root.querySelector('.select-toggle');
+  const label  = root.querySelector('.select-label');
+  const menu   = root.querySelector('.select-menu');
+  const hidden = document.getElementById(hiddenId);
+  const initial = (root.dataset.initialValue || '').toString();
+
+  // Set initial value/label
+  const all = [...menu.querySelectorAll('.select-option')];
+  const match = all.find(o => (o.dataset.value||'').toString() === initial);
+  if(match){
+    all.forEach(o=>o.classList.remove('active'));
+    match.classList.add('active');
+    label.textContent = match.textContent.trim();
+    hidden.value = initial;
+  }else{
+    // default placeholder
+    const first = all[0];
+    if(first){
+      first.classList.add('active');
+      label.textContent = placeholderText || first.textContent.trim();
+      hidden.value = first.dataset.value || '';
+    }
+  }
+
+  // open/close
+  toggle.addEventListener('click', ()=>{
+    const open = root.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  // pick
+  menu.addEventListener('click', e=>{
+    const opt = e.target.closest('.select-option');
+    if(!opt || opt.hasAttribute('disabled')) return;
+    all.forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+    label.textContent = opt.textContent.trim();
+    hidden.value = opt.dataset.value || '';
+    root.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+  });
+
+  // close on outside
+  document.addEventListener('click', e=>{
+    if(!root.contains(e.target)){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+
+  // Esc close
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape'){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+}
+
+// init both selects
+document.addEventListener('DOMContentLoaded', ()=>{
+  initCustomSelect('kategoriSelect','kategori_id','Seçiniz');
+  initCustomSelect('riskSelect','ai_risk_skoru','(opsiyonel)');
+});
+</script>
+{% endblock %}

@@ -1,0 +1,293 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container py-4">
+
+<div class="hero card border-0 shadow-sm mb-4"
+     style="background: linear-gradient(90deg, #ff9800 0%, #f44336 50%, #e65100 100%);
+            border-left: 6px solid #bf360c; border-radius: 1rem;">
+  <div class="card-body d-flex flex-column flex-lg-row align-items-start align-items-lg-center justify-content-between gap-3 p-4">
+
+    <!-- Sol: Başlık -->
+    <div class="pe-lg-3">
+      <h2 class="mb-1 fw-bold text-white">
+        <i class="fa fa-handshake me-2 text-warning"></i> Hoş Geldiniz, {{ kullanici_adi }}
+      </h2>
+      <p class="text-light mb-0" style="text-align: center;">
+        SmartYönetici ile işlemlerinizi hızlıca yönetin.
+      </p>
+    </div>
+
+ 
+
+
+    <!-- Sağ: Hızlı İşlemler -->
+    <div class="quick-actions d-flex flex-wrap gap-2 justify-content-lg-end">
+      <a href="{{ url_for('main.profil') }}" class="btn btn-info btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Profilinizi görüntüleyin ve düzenleyin">
+        <i class="fa fa-user me-1"></i> Profil
+      </a>
+
+      {% if session.get("rol") == "sakin" %}
+      <a href="{{ url_for('main.sikayet_olustur') }}" class="btn btn-warning btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Yeni bir şikayet oluşturun">
+        <i class="fa fa-plus me-1"></i> Yeni Şikayet
+      </a>
+      {% endif %}
+
+      {% if session.get("rol") == "yonetici" %}
+      <a href="{{ url_for('main.sikayetler') }}" class="btn btn-warning btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Şikayetleri görüntüle">
+        <i class="fa fa-list me-1"></i> Şikayetler
+      </a>
+      {% endif %}
+
+      {% if session.get("rol") == "sakin" %}
+      <a href="{{ url_for('main.duyurular') }}" class="btn btn-primary btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Yayınlanan duyuruları görüntüleyin">
+        <i class="fa fa-bullhorn me-1"></i> Duyurular
+      </a>
+      {% endif %}
+
+      {% if session.get("rol") == "yonetici" %}
+      <a href="{{ url_for('main.ai_duyuru_olustur') }}" class="btn btn-primary btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Yeni duyuru oluştur">
+        <i class="fa fa-bullhorn me-1"></i> Yeni Duyuru
+      </a>
+      {% endif %}
+
+      {% if session.get("rol") == "sakin" %}
+      <a href="{{ url_for('main.aidat_odeme') }}" class="btn btn-success btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Aidat ödemenizi yapın ve geçmişinizi görüntüleyin">
+        <i class="fa fa-coins me-1"></i> Aidat Ödeme
+      </a>
+      {% endif %}
+
+      {% if session.get("rol") == "yonetici" %}
+      <a href="{{ url_for('main.aidat_takip') }}" class="btn btn-success btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Aidatları ve oranları takip edin">
+        <i class="fa fa-coins me-1"></i> Aidat Takip
+      </a>
+      {% endif %}
+
+      <a href="{{ url_for('main.gelir_gider') }}" class="btn btn-secondary btn-sm rounded-pill shadow-sm qa-btn" data-bs-toggle="tooltip" title="Gelir ve gider raporlarını inceleyin">
+        <i class="fa fa-chart-line me-1"></i> Gelir-Gider
+      </a>
+    </div>
+
+  </div>
+</div>
+
+
+
+<!-- Tooltip Aktifleştirme -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+  tooltipTriggerList.map(function (tooltipTriggerEl) {
+    return new bootstrap.Tooltip(tooltipTriggerEl)
+  })
+})
+</script>
+
+<style>
+.hero {
+  border: 1px solid rgba(0,0,0,0.05);
+}
+.hero a.btn {
+  
+  font-weight: 500;
+  letter-spacing: 0.5px;
+  font-size: 1rem;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: all 0.18s cubic-bezier(.4,2,.3,1);
+  border-radius: 50px;
+}
+.hero a.btn:hover {
+  transform: translateY(-2px) scale(1.04);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.15)
+}
+</style>
+
+  <div class="row g-4 mb-4">
+    {% for kart in kartlar %}
+    <div class="col-md-6 col-xl-3">
+      <div class="card shadow rounded-4 text-center border-0 dashboard-card h-100">
+        <div class="card-body py-4">
+          <i class="fa {{ kart.ikon }} fa-2x mb-3 text-{{ kart.renk }}"></i>
+          <h5 class="card-title fw-semibold">{{ kart.baslik }}</h5>
+          <p class="fs-3 text-{{ kart.renk }} fw-bold">{{ kart.deger }}</p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+<!-- Bilgilendirici Kartlar -->
+<div class="row g-4 mt-1">
+  <!-- Kullanım Kılavuzu -->
+  <div class="col-md-4">
+    <div class="card shadow rounded-4 h-100 info-card text-center border-0">
+      <div class="card-body py-4 d-flex flex-column align-items-center">
+        <div class="icon-circle mb-3 bg-primary bg-gradient">
+          <i class="fa fa-book fa-2x text-white"></i>
+        </div>
+        <h5 class="card-title fw-bold mb-1 text-primary">Kullanım Kılavuzu</h5>
+        <span class="badge bg-light text-primary mb-2">5 Adımda Başlangıç</span>
+        <p class="card-text text-muted mb-3">Sistemi en verimli şekilde kullanmanız için adım adım rehber.</p>
+        <button class="btn btn-primary btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#kilavuzModal">
+          <i class="fa fa-eye me-1"></i> Görüntüle
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Site Amacı -->
+  <div class="col-md-4">
+    <div class="card shadow rounded-4 h-100 info-card text-center border-0">
+      <div class="card-body py-4 d-flex flex-column align-items-center">
+        <div class="icon-circle mb-3 bg-success bg-gradient">
+          <i class="fa fa-bullseye fa-2x text-white"></i>
+        </div>
+        <h5 class="card-title fw-bold mb-1 text-success">Site Amacı</h5>
+        <span class="badge bg-light text-success mb-2">Verimlilik + Kolaylık</span>
+        <p class="card-text text-muted">Smart Yönetici ile süreçleri kolayca yönetin, ekibinizi ve işleri optimize edin.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- SSS -->
+  <div class="col-md-4">
+    <div class="card shadow rounded-4 h-100 info-card text-center border-0">
+      <div class="card-body py-4 d-flex flex-column align-items-center">
+        <div class="icon-circle mb-3 bg-info bg-gradient">
+          <i class="fa fa-question-circle fa-2x text-white"></i>
+        </div>
+        <h5 class="card-title fw-bold mb-1 text-info">Sıkça Sorulan Sorular</h5>
+        <span class="badge bg-light text-info mb-2">Fazlasıyla Yanıt Hazır</span>
+        <p class="card-text text-muted">En çok merak edilen sorulara hızlı yanıt alın.</p>
+        <button class="btn btn-outline-info btn-sm rounded-pill" data-bs-toggle="modal" data-bs-target="#sssModal">
+          <i class="fa fa-list me-1"></i> Aç
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Kullanım Kılavuzu Modal -->
+<div class="modal fade" id="kilavuzModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content rounded-4">
+      <div class="modal-header bg-primary text-white">
+        <h5 class="modal-title"><i class="fa fa-book me-2"></i>Kullanım Kılavuzu</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <ol class="mb-0">
+          <li><strong>Sol menü</strong>den modüllere erişin.</li>
+          <li><strong>Hızlı işlemler</strong>le tek tıkla kayıt oluşturun.</li>
+          <li><strong>Raporlar</strong> menüsünden özet ve detay analizleri görüntüleyin.</li>
+          <li><strong>Profil sayfası</strong>ndan bildirim tercihlerinizi yönetin.</li>
+          <li><strong>Yardım</strong> bölümünden anlık destek alın.</li>
+        </ol>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SSS Modal -->
+<!-- SSS Modal -->
+<div class="modal fade" id="sssModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content rounded-4">
+      <div class="modal-header bg-info text-white">
+        <h5 class="modal-title"><i class="fa fa-question-circle me-2"></i>Sıkça Sorulan Sorular</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Kapat"></button>
+      </div>
+      <div class="modal-body">
+        <div class="accordion" id="sssAcc">
+          
+          <!-- Soru 1 -->
+          <div class="accordion-item">
+            <h2 class="accordion-header">
+              <button class="accordion-button" data-bs-toggle="collapse" data-bs-target="#q1">
+                <i class="fa fa-credit-card me-2 text-primary"></i> Aidat ödememi nasıl görüntülerim?
+              </button>
+            </h2>
+            <div id="q1" class="accordion-collapse collapse show" data-bs-parent="#sssAcc">
+              <div class="accordion-body">Aidat Ödeme sayfasından dönem bazlı ödemelerinizi görebilirsiniz.</div>
+            </div>
+          </div>
+
+          <!-- Soru 2 -->
+          <div class="accordion-item mt-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q2">
+                <i class="fa fa-comments me-2 text-warning"></i> Şikayet nasıl oluşturulur?
+              </button>
+            </h2>
+            <div id="q2" class="accordion-collapse collapse" data-bs-parent="#sssAcc">
+              <div class="accordion-body">“Yeni Şikayet” butonuna tıklayın, formu doldurun ve kaydedin.</div>
+            </div>
+          </div>
+
+          <!-- Soru 3 -->
+          <div class="accordion-item mt-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q3">
+                <i class="fa fa-bullhorn me-2 text-danger"></i> Duyuruları nereden görebilirim?
+              </button>
+            </h2>
+            <div id="q3" class="accordion-collapse collapse" data-bs-parent="#sssAcc">
+              <div class="accordion-body">Ana menüden “Duyurular” sekmesine girerek tüm yayınlanmış duyuruları inceleyebilirsiniz.</div>
+            </div>
+          </div>
+
+          <!-- Soru 4 -->
+          <div class="accordion-item mt-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q4">
+                <i class="fa fa-user-cog me-2 text-secondary"></i> Profil bilgilerimi nasıl güncellerim?
+              </button>
+            </h2>
+            <div id="q4" class="accordion-collapse collapse" data-bs-parent="#sssAcc">
+              <div class="accordion-body">Profil sayfanıza girip gerekli alanları düzenledikten sonra “Kaydet” butonuna basabilirsiniz.</div>
+            </div>
+          </div>
+
+          <!-- Soru 5 -->
+          <div class="accordion-item mt-2">
+            <h2 class="accordion-header">
+              <button class="accordion-button collapsed" data-bs-toggle="collapse" data-bs-target="#q5">
+                <i class="fa fa-chart-line me-2 text-success"></i> Gelir-gider raporlarına nasıl ulaşırım?
+              </button>
+            </h2>
+            <div id="q5" class="accordion-collapse collapse" data-bs-parent="#sssAcc">
+              <div class="accordion-body">“Gelir-Gider” menüsünden aylık ve yıllık bazda raporları görebilir, detaylı analiz yapabilirsiniz.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.dashboard-card, .info-card {
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border-radius: 1rem !important;
+}
+.dashboard-card:hover, .info-card:hover {
+  transform: translateY(-6px) scale(1.04);
+  box-shadow: 0 10px 28px rgba(0,0,0,0.15);
+}
+.icon-circle {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.10);
+}
+.modal-header {
+  border-bottom: none;
+}
+.accordion-button {
+  font-weight: 500;
+}
+</style>
+
+{% endblock %}

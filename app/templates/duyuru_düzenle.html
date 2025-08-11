@@ -1,0 +1,132 @@
+{% extends "layout.html" %}
+{% block title %}Duyuruyu Düzenle - SmartYönetici{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg border-0 rounded-4 mx-auto" style="max-width: 700px;">
+    <div class="card-body">
+      <h3 class="fw-bold mb-4 text-primary"><i class="fas fa-pen me-2"></i> Duyuruyu Düzenle</h3>
+      <form method="POST">
+        <div class="mb-3">
+          <label class="form-label fw-semibold">Başlık</label>
+          <input type="text" name="baslik" class="form-control" value="{{ duyuru.baslik }}" required>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold">İçerik</label>
+          <textarea name="icerik" class="form-control" rows="5" required>{{ duyuru.icerik }}</textarea>
+        </div>
+        <!-- Kategori -->
+<div class="mb-3">
+  <label class="form-label fw-semibold"><i class="fas fa-tags me-2"></i>Kategori</label>
+  
+  <!-- Gizli input -->
+  <input type="hidden" name="kategori" id="kategoriHidden" value="{{ duyuru.kategori or '' }}">
+
+  <!-- Custom Select -->
+  <div class="select is-custom" id="kategoriSelect" data-value="{{ duyuru.kategori or '' }}">
+    <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+      <span class="select-label">
+        {% if duyuru.kategori %}
+          {% if duyuru.kategori == "aidat" %}💰 Aidat{% endif %}
+          {% if duyuru.kategori == "bakim" %}🔧 Bakım{% endif %}
+          {% if duyuru.kategori == "etkinlik" %}🎉 Etkinlik{% endif %}
+          {% if duyuru.kategori == "acil" %}🚨 Acil{% endif %}
+          {% if duyuru.kategori == "guvenlik" %}🛡️ Güvenlik{% endif %}
+          {% if duyuru.kategori == "genel" %}📋 Genel{% endif %}
+        {% else %}
+          Kategori seçiniz...
+        {% endif %}
+      </span>
+      <i class="fas fa-chevron-down ms-2"></i>
+    </button>
+    <ul class="select-menu" role="listbox">
+      <li class="select-option {% if duyuru.kategori=='aidat' %}active{% endif %}" data-value="aidat">💰 Aidat</li>
+      <li class="select-option {% if duyuru.kategori=='bakim' %}active{% endif %}" data-value="bakim">🔧 Bakım</li>
+      <li class="select-option {% if duyuru.kategori=='etkinlik' %}active{% endif %}" data-value="etkinlik">🎉 Etkinlik</li>
+      <li class="select-option {% if duyuru.kategori=='acil' %}active{% endif %}" data-value="acil">🚨 Acil</li>
+      <li class="select-option {% if duyuru.kategori=='guvenlik' %}active{% endif %}" data-value="guvenlik">🛡️ Güvenlik</li>
+      <li class="select-option {% if duyuru.kategori=='genel' %}active{% endif %}" data-value="genel">📋 Genel</li>
+    </ul>
+  </div>
+</div>
+
+
+
+<style>
+/* Custom Select (Kategori) */
+.select.is-custom{ position:relative; width:100%; }
+.select-toggle{
+  width:100%; background:#fff; border:1.5px solid #e0e7ff; border-radius:12px;
+  padding:.75rem 1rem; display:flex; align-items:center; justify-content:space-between;
+  box-shadow:0 2px 8px rgba(0,0,0,.06); transition:all .18s ease;
+}
+.select-toggle:hover{ background:#f8faff; }
+.select-toggle:focus{ outline:none; border-color:#1e66ff; box-shadow:0 0 0 .2rem rgba(30,102,255,.12); }
+.select-label{ font-weight:600; color:#212529; }
+
+.select-menu{
+  position:absolute; right:0; left:0; top:calc(100% + 8px);
+  background:#fff; border:1px solid rgba(0,0,0,.06); border-radius:14px;
+  box-shadow:0 16px 36px rgba(0,0,0,.12);
+  padding:.4rem; margin:0; list-style:none; max-height:320px; overflow:auto;
+  opacity:0; visibility:hidden; transform:translateY(-6px);
+  transition:all .18s ease; z-index:20;
+}
+.select.is-open .select-menu{ opacity:1; visibility:visible; transform:translateY(0); }
+
+.select-option{
+  display:flex; align-items:center; gap:.6rem;
+  padding:.6rem .7rem; border-radius:10px; cursor:pointer;
+  color:#212529; font-weight:500; white-space:nowrap;
+}
+.select-option span{ width:1.1rem; display:inline-flex; justify-content:center; }
+.select-option:hover{ background:#f0f4ff; }
+.select-option.active{ background:#e7f0ff; color:#1e66ff; }
+</style>
+
+<script>
+(function(){
+  const root   = document.getElementById('kategoriSelect');
+  if(!root) return;
+  const toggle = root.querySelector('.select-toggle');
+  const label  = root.querySelector('.select-label');
+  const menu   = root.querySelector('.select-menu');
+  const hidden = document.getElementById('kategoriHidden');
+
+  toggle.addEventListener('click', ()=>{
+    root.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', root.classList.contains('is-open') ? 'true' : 'false');
+  });
+
+  menu.addEventListener('click', e=>{
+    const opt = e.target.closest('.select-option');
+    if(!opt) return;
+    root.querySelectorAll('.select-option').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+    const val = opt.dataset.value;
+    label.textContent = opt.textContent.trim();
+    hidden.value = val;
+    root.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+  });
+
+  document.addEventListener('click', e=>{
+    if(!root.contains(e.target)){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+})();
+</script>
+
+
+
+        <div class="d-flex justify-content-end gap-2 mt-4">
+          <button type="submit" class="btn btn-primary px-4"><i class="fas fa-save me-2"></i> Güncelle</button>
+          <a href="{{ url_for('main.duyurular') }}" class="btn btn-outline-secondary px-4"><i
+              class="fas fa-times me-2"></i> İptal</a>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI Destekli Duyuru Oluşturucu</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <style>
+    .btn-publish {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(25, 118, 210, 0.3);
+    }
+
+    .btn-publish:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(25, 118, 210, 0.4);
+    }
+
+    .btn-clear {
+      background: linear-gradient(135deg, #9e9e9e, #bdbdbd);
+      border: none;
+      color: white;
+      padding: 12px 24px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 15px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(158, 158, 158, 0.3);
+    }
+
+    .btn-clear:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(158, 158, 158, 0.4);
+    }
+
+    :root {
+      --primary-color: #1976d2;
+      --secondary-color: #64b5f6;
+      --accent-color: #e3f2fd;
+      --success-color: #4caf50;
+      --warning-color: #ff9800;
+      --text-dark: #333;
+      --text-light: #666;
+      --border-radius: 12px;
+      --shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+      --shadow-hover: 0 8px 30px rgba(0, 0, 0, 0.15);
+    }
+
+    body {
+      background: #fff;
+      /* Beyaz arka plan */
+      min-height: 100vh;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 20px 0;
+    }
+
+    .main-container {
+      background: white;
+      border-radius: var(--border-radius);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      margin: 20px auto;
+      max-width: 1200px;
+    }
+
+    .header {
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      color: white;
+      padding: 40px 30px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .header::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: repeating-linear-gradient(45deg,
+          transparent,
+          transparent 10px,
+          rgba(255, 255, 255, 0.1) 10px,
+          rgba(255, 255, 255, 0.1) 20px);
+      animation: slide 20s linear infinite;
+    }
+
+    @keyframes slide {
+      0% {
+        transform: translateX(-50px);
+      }
+
+      100% {
+        transform: translateX(0px);
+      }
+    }
+
+    .header h1 {
+      font-size: 2.5rem;
+      font-weight: 700;
+      margin: 0;
+      position: relative;
+      z-index: 2;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      margin: 10px 0 0 0;
+      opacity: 0.9;
+      position: relative;
+      z-index: 2;
+    }
+
+    .content-section {
+      padding: 40px 30px;
+    }
+
+    .form-card {
+      background: var(--accent-color);
+      border-radius: var(--border-radius);
+      padding: 30px;
+      height: 100%;
+      border: none;
+      box-shadow: 0 2px 15px rgba(25, 118, 210, 0.1);
+      transition: all 0.3s ease;
+    }
+
+    .form-card:hover {
+      box-shadow: var(--shadow-hover);
+      transform: translateY(-2px);
+    }
+
+    .form-card h4 {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .form-label {
+      font-weight: 600;
+      color: var(--text-dark);
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .form-control,
+    .form-select {
+      border: 2px solid #e0e7ff;
+      border-radius: 8px;
+      padding: 12px 15px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+      background: white;
+    }
+
+    .form-control:focus,
+    .form-select:focus {
+      border-color: var(--primary-color);
+      box-shadow: 0 0 0 0.2rem rgba(25, 118, 210, 0.15);
+      transform: translateY(-1px);
+    }
+
+    .form-check {
+      background: white;
+      border-radius: 8px;
+      padding: 12px 15px;
+      margin-bottom: 15px;
+      border: 1px solid #e0e7ff;
+      transition: all 0.3s ease;
+    }
+
+    .form-check:hover {
+      background: #f8faff;
+      border-color: var(--secondary-color);
+    }
+
+    .form-check-input:checked {
+      background-color: var(--success-color);
+      border-color: var(--success-color);
+    }
+
+    .btn-ai {
+      background: linear-gradient(135deg, var(--success-color), #66bb6a);
+      border: none;
+      color: white;
+      padding: 15px 30px;
+      border-radius: 25px;
+      font-weight: 600;
+      font-size: 16px;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3);
+      width: 100%;
+      margin-top: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-ai:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(76, 175, 80, 0.4);
+      background: linear-gradient(135deg, #43a047, var(--success-color));
+    }
+
+    .btn-ai::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+
+    .btn-ai:hover::before {
+      left: 100%;
+    }
+
+    .result-card {
+      background: white;
+      border-radius: var(--border-radius);
+      padding: 30px;
+      height: 100%;
+      box-shadow: var(--shadow);
+      border-left: 5px solid var(--primary-color);
+    }
+
+    .result-card h4 {
+      color: var(--primary-color);
+      font-weight: 600;
+      margin-bottom: 25px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .duyuru-kutu {
+      border: 2px solid var(--primary-color);
+      padding: 25px;
+      border-radius: var(--border-radius);
+      background: linear-gradient(135deg, #f0f4ff, #e8f2ff);
+      font-family: 'Segoe UI', sans-serif;
+      line-height: 1.6;
+      position: relative;
+      overflow: hidden;
+      min-height: 200px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .duyuru-kutu::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+    }
+
+    .no-announcement {
+      color: var(--text-light);
+      font-style: italic;
+      text-align: center;
+      padding: 60px 20px;
+      background: #f8f9ff;
+      border-radius: var(--border-radius);
+      border: 2px dashed #ddd;
+    }
+
+    .feature-icon {
+      width: 50px;
+      height: 50px;
+      background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 20px;
+      margin: 0 auto 20px;
+    }
+
+    @media (max-width: 768px) {
+      .header h1 {
+        font-size: 2rem;
+      }
+
+      .content-section {
+        padding: 30px 20px;
+      }
+
+      .form-card,
+      .result-card {
+        padding: 20px;
+        margin-bottom: 20px;
+      }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.05);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+  </style>
+</head>
+
+{% extends "layout.html" %}
+{% block content %}
+
+<!-- Sayfa Başlığı -->
+<div class="mb-4 p-4 rounded-4 shadow-sm d-flex align-items-center justify-content-between"
+  style="background: linear-gradient(90deg, #ede7f6 0%, #d1c4e9 50%, #c5cae9 100%); border-left: 6px solid #5e35b1;">
+  <div class="d-flex align-items-center">
+    <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+      style="width:60px; height:60px; background:#5e35b1; color:#fff; font-size:1.6rem;">
+      <i class="fas fa-search"></i>
+    </div>
+    <div>
+      <h2 class="fw-bold text-dark mb-1">AI Destekli Duyuru Oluşturucu</h2>
+      <p class="mb-0 text-muted" style="font-size:0.95rem;">
+        Yapay zeka ile profesyonel duyurular oluşturun
+      </p>
+    </div>
+  </div>
+</div>
+
+
+<div class="row">
+
+  <!-- Form Alanı -->
+  <div class="col-lg-6 mb-4">
+    <div class="form-card p-4 rounded-4 shadow-sm"
+      style="background: linear-gradient(90deg, #e3f2fd, #bbdefb); border-left: 6px solid #0d6efd;">
+      <h4 class="fw-bold text-dark mb-4 d-flex align-items-center">
+        <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+          style="width:45px; height:45px; background:#0d6efd; color:#fff;">
+          <i class="fas fa-edit"></i>
+        </div>
+        Duyuru Bilgileri
+      </h4>
+
+      <form method="POST" action="/ai_duyuru_olustur">
+        <!-- KATEGORİ (Custom Select) -->
+        <div class="mb-3">
+          <label class="form-label fw-semibold">
+            <i class="fas fa-tag me-1"></i> Duyuru Kategorisi
+          </label>
+
+          <!-- Gizli input: form gönderiminde bu gider -->
+          <input type="hidden" name="kategori" id="kategoriHidden" value="">
+
+          <!-- Custom Select -->
+          <div class="select is-custom" id="kategoriSelect" data-value="">
+            <button class="select-toggle" type="button" aria-haspopup="listbox" aria-expanded="false">
+              <span class="select-label">Kategori seçiniz...</span>
+              <i class="fas fa-chevron-down ms-2"></i>
+            </button>
+            <ul class="select-menu" role="listbox">
+              <li class="select-option active" data-value=""><span>🗂️</span> Kategori seçiniz...</li>
+              <li class="select-option" data-value="genel"><span>📢</span> Genel Bilgilendirme</li>
+              <li class="select-option" data-value="aidat"><span>💰</span> Aidat</li>
+              <li class="select-option" data-value="bakim"><span>🔧</span> Bakım</li>
+              <li class="select-option" data-value="etkinlik"><span>🎉</span> Etkinlik</li>
+              <li class="select-option" data-value="guvenlik"><span>🛡️</span> Güvenlik</li>
+              <li class="select-option" data-value="acil"><span>🚨</span> Acil</li>
+            </ul>
+          </div>
+        </div>
+        <div class="mb-3">
+          <label class="form-label fw-semibold"><i class="fas fa-align-left me-1"></i> Kısa Açıklama</label>
+          <textarea name="kisa_aciklama" class="form-control rounded-3" rows="4"
+            placeholder="Duyurunuzun ana konusunu kısaca açıklayın..." required></textarea>
+        </div>
+
+        <div class="mb-3">
+          <label class="form-label fw-semibold"><i class="fas fa-palette me-1"></i> Ton ve Stil</label>
+          <select name="ton" class="form-select rounded-3">
+            <option value="Resmi ve Profesyonel">🎩 Resmi ve Profesyonel</option>
+            <option value="Dostça ve Bilgilendirici">😊 Dostça ve Bilgilendirici</option>
+          </select>
+        </div>
+
+        <div class="form-check mb-2">
+          <input class="form-check-input" type="checkbox" name="ozur" value="1" id="ozur">
+          <label class="form-check-label" for="ozur"><i class="fas fa-heart me-1"></i> Özür ifadesi ekle</label>
+        </div>
+
+        <div class="form-check mb-4">
+          <input class="form-check-input" type="checkbox" name="tesekkur" value="1" id="tesekkur">
+          <label class="form-check-label" for="tesekkur"><i class="fas fa-handshake me-1"></i> Teşekkür ifadesi
+            ekle</label>
+        </div>
+
+        <button type="submit" class="btn w-100"
+          style="background: linear-gradient(90deg,#0d6efd,#1976d2); color:white;">
+          <i class="fas fa-brain me-2"></i> AI ile Duyuru Oluştur
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <style>
+    /* Custom Select (Kategori) */
+    .select.is-custom {
+      position: relative;
+      width: 100%;
+    }
+
+    .select-toggle {
+      width: 100%;
+      background: #fff;
+      border: 1.5px solid #e0e7ff;
+      border-radius: 12px;
+      padding: .75rem 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, .06);
+      transition: all .18s ease;
+    }
+
+    .select-toggle:hover {
+      background: #f8faff;
+    }
+
+    .select-toggle:focus {
+      outline: none;
+      border-color: #1e66ff;
+      box-shadow: 0 0 0 .2rem rgba(30, 102, 255, .12);
+    }
+
+    .select-label {
+      font-weight: 600;
+      color: #212529;
+    }
+
+    .select-menu {
+      position: absolute;
+      right: 0;
+      left: 0;
+      top: calc(100% + 8px);
+      background: #fff;
+      border: 1px solid rgba(0, 0, 0, .06);
+      border-radius: 14px;
+      box-shadow: 0 16px 36px rgba(0, 0, 0, .12);
+      padding: .4rem;
+      margin: 0;
+      list-style: none;
+      max-height: 320px;
+      overflow: auto;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateY(-6px);
+      transition: all .18s ease;
+      z-index: 20;
+    }
+
+    .select.is-open .select-menu {
+      opacity: 1;
+      visibility: visible;
+      transform: translateY(0);
+    }
+
+    .select-option {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      padding: .6rem .7rem;
+      border-radius: 10px;
+      cursor: pointer;
+      color: #212529;
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .select-option span {
+      width: 1.1rem;
+      display: inline-flex;
+      justify-content: center;
+    }
+
+    .select-option:hover {
+      background: #f0f4ff;
+    }
+
+    .select-option.active {
+      background: #e7f0ff;
+      color: #1e66ff;
+    }
+  </style>
+  <script>
+(function(){
+  const root   = document.getElementById('kategoriSelect');
+  if(!root) return;
+  const toggle = root.querySelector('.select-toggle');
+  const label  = root.querySelector('.select-label');
+  const menu   = root.querySelector('.select-menu');
+  const hidden = document.getElementById('kategoriHidden');
+
+  // Aç/kapa
+  toggle.addEventListener('click', ()=>{
+    const open = root.classList.toggle('is-open');
+    toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+  });
+
+  // Seçim
+  menu.addEventListener('click', e=>{
+    const opt = e.target.closest('.select-option');
+    if(!opt) return;
+
+    // active durumu
+    root.querySelectorAll('.select-option').forEach(o=>o.classList.remove('active'));
+    opt.classList.add('active');
+
+    // değerleri yansıt
+    const val = (opt.dataset.value || '').toLowerCase();
+    label.textContent = opt.textContent.trim();
+    root.dataset.value = val;
+    if(hidden) hidden.value = val;
+
+    // kapat
+    root.classList.remove('is-open');
+    toggle.setAttribute('aria-expanded','false');
+
+    // varsa filtre fonksiyonun
+    if (typeof filterKategori === 'function') filterKategori(val);
+  });
+
+  // Dışarı tıklayınca kapat
+  document.addEventListener('click', e=>{
+    if(!root.contains(e.target)){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+
+  // ESC ile kapat
+  document.addEventListener('keydown', e=>{
+    if(e.key === 'Escape'){
+      root.classList.remove('is-open');
+      toggle.setAttribute('aria-expanded','false');
+    }
+  });
+})();
+</script>
+
+
+
+
+
+
+
+
+
+
+  <!-- AI Çıktısı Alanı -->
+  <div class="col-lg-6 mb-4">
+    <div class="form-card p-4 rounded-4 shadow-sm"
+      style="background: linear-gradient(90deg, #e3f2fd, #bbdefb); border-left: 6px solid #39388e;">
+      <h4 class="fw-bold text-dark mb-4 d-flex align-items-center">
+        <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+          style="width:45px; height:45px; background:#3c97b5; color:#fff;">
+          <i class="fas fa-bullhorn"></i>
+        </div>
+        Oluşturulan Duyuru
+      </h4>
+
+      <div id="duyuru-result">
+        {% if duyuru %}
+        <div class="duyuru-kutu p-3 rounded-3 bg-white border mb-3">
+          {{ duyuru | safe }}
+        </div>
+        <form method="POST" action="/ai_duyuru_olustur">
+          <input type="hidden" name="kategori" value="{{ request.form.get('kategori') }}">
+          <input type="hidden" name="kisa_aciklama" value="{{ request.form.get('kisa_aciklama') }}">
+          <input type="hidden" name="ton" value="{{ request.form.get('ton') }}">
+          {% if request.form.get('ozur') %}<input type="hidden" name="ozur" value="1">{% endif %}
+          {% if request.form.get('tesekkur') %}<input type="hidden" name="tesekkur" value="1">{% endif %}
+
+          <button type="submit" name="action" value="publish" class="btn w-100 mb-2"
+            style="background: linear-gradient(90deg,#4caf50,#2e7d32); color:white;">
+            <i class="fas fa-upload me-2"></i> Duyuruyu Yayınla
+          </button>
+          <a href="/ai_duyuru_olustur" class="btn w-100"
+            style="background: linear-gradient(90deg,#f44336,#b71c1c); color:white;">
+            <i class="fas fa-times-circle me-2"></i> Temizle
+          </a>
+        </form>
+        {% else %}
+        <div class="no-announcement text-center p-5 border rounded bg-light">
+          <i class="fas fa-magic fa-2x text-muted mb-3"></i>
+          <h5>Henüz duyuru oluşturulmadı</h5>
+          <p>Formu doldurduktan sonra AI tarafından oluşturulacak duyuru burada görünecektir.</p>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<style>
+  .btn-gradient-blue {
+    background: linear-gradient(90deg, #2196f3, #1976d2);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 16px;
+    font-weight: 500;
+    transition: all 0.3s ease;
+  }
+
+  .btn-gradient-blue:hover {
+    transform: scale(1.03);
+    box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+  }
+
+  /* Alt aksiyon çubuğu butonları — AI butonuyla aynı yükseklik/etki */
+  .btn-cta {
+    padding: 14px 18px;
+    /* AI butonuna yakın yükseklik */
+    font-weight: 600;
+    border: none;
+    border-radius: 10px;
+    transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, .12);
+  }
+
+  .btn-cta:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(0, 0, 0, .16);
+  }
+
+  .btn-cta:active {
+    transform: translateY(0);
+    filter: brightness(.96);
+  }
+
+  /* Yeşil (Yayınla) ve Kırmızı (Temizle) gradientleri */
+  .btn-green {
+    background: linear-gradient(90deg, #4caf50, #2e7d32);
+    color: #fff;
+  }
+
+  .btn-red {
+    background: linear-gradient(90deg, #f44336, #c62828);
+    color: #fff;
+  }
+
+  /* Üstteki AI oluştur butonunu da aynı yükseklikte göstermek isterseniz: */
+  .btn-gradient-blue {
+    padding: 14px 18px;
+    border-radius: 10px;
+  }
+
+  /* mevcut sınıfınız */
+
+  @media (max-width: 991.98px) {
+    .page-actions .btn-cta {
+      width: 100%;
+    }
+  }
+</style>
+
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/js/bootstrap.bundle.min.js"></script>
+<script>
+  // Form interaktivitesi için basit JavaScript
+  document.addEventListener('DOMContentLoaded', function () {
+    const form = document.querySelector('form');
+    const submitBtn = document.querySelector('.btn-ai');
+
+    form.addEventListener('submit', function (e) {
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Oluşturuluyor...';
+      submitBtn.disabled = true;
+    });
+
+    // Form alanları için gerçek zamanlı validasyon
+    const requiredFields = document.querySelectorAll('[required]');
+    requiredFields.forEach(field => {
+      field.addEventListener('input', function () {
+        if (this.value.trim()) {
+          this.style.borderColor = 'var(--success-color)';
+        } else {
+          this.style.borderColor = '#e0e7ff';
+        }
+      });
+    });
+  });
+</script>
+</body>
+{% endblock %}
+
+</html>

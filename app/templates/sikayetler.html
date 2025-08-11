@@ -1,0 +1,106 @@
+{% extends "layout.html" %}
+{% block title %}Şikayetler - SmartYönetici{% endblock %}
+
+{% block content %}
+<div class="mb-4 p-4 rounded-3 shadow-sm d-flex align-items-center"
+     style="background: linear-gradient(90deg, #ffebee 0%, #ffcdd2 100%); border-left: 6px solid #dc3545;">
+  <div class="me-3 d-flex align-items-center justify-content-center rounded-circle"
+       style="width:60px; height:60px; background:#dc3545; color:#fff; font-size:1.6rem;">
+    <i class="fas fa-bug"></i>
+  </div>
+  <div>
+    <h2 class="fw-bold text-dark mb-1">Yapılan Şikayetler</h2>
+    <p class="mb-0 text-muted" style="font-size:0.95rem;">
+      Sakinlerden gelen AI destekli analizli şikayetleri buradan inceleyebilirsiniz.
+    </p>
+  </div>
+</div>
+
+  {% if sikayetler and sikayetler|length > 0 %}
+  <div class="table-responsive aidat-table-wrapper shadow-sm overflow-hidden" style="border-radius:0 !important;">
+    <table id="sikayetTablo" class="table table-bordered align-middle mb-0 text-center"
+      style="background:#fff; border-radius:0 !important;">
+      <thead class="sticky-head">
+        <tr>
+          <!-- Başlık hücrelerine direkt stil veriyoruz -->
+          <th style="background:#ff9800; color:#000; position:sticky; top:0; z-index:2;">Şikayet Metni</th>
+          <th style="background:#ff9800; color:#000; position:sticky; top:0; z-index:2;">Kategori</th>
+          <th style="background:#ff9800; color:#000; position:sticky; top:0; z-index:2;">Öncelik</th>
+          <th style="background:#ff9800; color:#000; position:sticky; top:0; z-index:2;">Durum</th>
+          <th style="background:#ff9800; color:#000; position:sticky; top:0; z-index:2;">Çözüm Önerisi</th>
+          <th style="background:#ff9800; color:#000; position:sticky; top:0; z-index:2;">Tarih</th>
+          <th style="background:#ff9800; color:#000; position:sticky; top:0; z-index:2;">İşlemler</th>
+        </tr>
+      </thead>
+      <tbody style="background:#fff;">
+        {% for s in sikayetler %}
+        {% set oncelik_lower = (s.oncelik or '')|lower %}
+        {% set oncelik_badge =
+        'danger' if 'yüksek' in oncelik_lower else
+        'warning' if 'orta' in oncelik_lower else
+        'success' if 'düşük' in oncelik_lower else
+        'secondary'
+        %}
+        {% set durum_lower = (s.durum or '')|lower %}
+        {% set durum_badge =
+        'info' if 'incelemede' in durum_lower else
+        'success' if 'çözüldü' in durum_lower or 'cozuldu' in durum_lower else
+        'secondary'
+        %}
+        {% set kategori_badge = 'primary' %}
+
+        <tr style="background:#fff; border-bottom:1px solid rgba(255,152,0,0.25);">
+          <td class="text-truncate" style="max-width:380px; background:#fff;">
+            {{ s.metin[:120] }}{% if s.metin|length > 120 %}…{% endif %}
+          </td>
+          <td style="background:#fff;">
+            <span class="badge rounded-pill" style="background:#2196f3; color:black;">
+              {{ s.kategori|capitalize }}
+            </span>
+          </td>
+          <td style="background:#fff;">
+            <span class="badge rounded-pill" style="background:#f44336; color:black;">
+              {{ s.oncelik|capitalize }}
+            </span>
+          </td>
+          <td style="background:#fff;">
+            <span class="badge rounded-pill" style="background:#4caf50; color:black;">
+              {{ s.durum|capitalize }}
+            </span>
+          </td>
+
+
+          <td class="text-truncate" style="max-width:320px; background:#fff;">
+            {{ s.cozum_onerisi or '-' }}
+          </td>
+          <td class="text-nowrap" style="background:#fff;">
+            {{ s.olusturma_tarihi.strftime("%d.%m.%Y") }}
+          </td>
+          <td style="background:#fff;">
+            <div class="d-inline-flex gap-2">
+              <a href="{{ url_for('main.sikayet_guncelle', id=s.id) }}"
+                class="btn btn-sm btn-warning rounded-pill px-3">
+                <i class="fas fa-edit me-1" aria-hidden="true"></i> Güncelle
+              </a>
+              <form action="{{ url_for('main.sikayet_sil', id=s.id) }}" method="post" class="m-0 d-inline">
+                <button type="submit" class="btn btn-sm btn-danger rounded-pill px-3"
+                  onclick="return confirm('Bu şikayeti silmek istediğinizden emin misiniz?')">
+                  <i class="fas fa-trash-alt me-1" aria-hidden="true"></i> Sil
+                </button>
+              </form>
+            </div>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <!-- ⚠️ Stil BLOĞUNU BURAYA, tablonun HEMEN ALTINA koy -->
+
+  {% else %}
+  <div class="alert alert-info mt-4 mb-0">
+    Henüz şikayet yapılmamış.
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,47 @@
+{% extends "layout.html" %}
+{% block title %}{{ duyuru.baslik }} - Duyuru Detayı{% endblock %}
+{% block content %}
+<div class="container py-5">
+  <div class="card shadow-lg border-0 rounded-4 mx-auto" style="max-width: 700px;">
+    <div class="card-body">
+      <div class="d-flex align-items-center mb-3">
+        <span class="icon-circle bg-primary me-3">
+          <i class="fas fa-bullhorn fa-lg text-white"></i>
+        </span>
+        <h2 class="fw-bold mb-0">{{ duyuru.baslik }}</h2>
+      </div>
+      <div class="mb-2 text-muted small">
+        <i class="fas fa-calendar-alt me-1"></i> {{ duyuru.yayinlanma_tarihi.strftime('%d.%m.%Y') }}
+        <span class="mx-2">|</span>
+        <i class="fas fa-eye me-1"></i> {{ duyuru.goruntulenme_sayisi }} görüntülenme
+        <span class="mx-2">|</span>
+        <span class="badge 
+          {% if duyuru.kategori == 'Aidat' %}bg-primary
+          {% elif duyuru.kategori == 'Bakım' %}bg-success
+          {% elif duyuru.kategori == 'Etkinlik' %}bg-warning text-dark
+          {% else %}bg-secondary{% endif %}">
+          {{ duyuru.kategori }}
+        </span>
+        {% if duyuru.ai_olusturuldu %}
+        <span class="badge bg-info text-dark ms-1">AI</span>
+        {% endif %}
+      </div>
+      <hr>
+      <p class="fs-5">{{ duyuru.icerik }}</p>
+      <a href="{{ url_for('main.duyurular') }}" class="btn btn-outline-primary mt-3">
+        <i class="fas fa-arrow-left me-2"></i> Geri Dön
+      </a>
+    </div>
+  </div>
+</div>
+<style>
+.icon-circle {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+</style>
+{% endblock %}

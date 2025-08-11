@@ -1,0 +1,26 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container mt-5">
+    <h3>Gelir Düzenle</h3>
+    <form method="POST">
+        <div class="mb-3">
+            <label class="form-label">Açıklama</label>
+            <input type="text" class="form-control" name="aciklama" value="{{ gelir.aciklama }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Tutar</label>
+            <input type="number" class="form-control" name="tutar" value="{{ gelir.tutar }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Tarih</label>
+            <input type="date" class="form-control" name="tarih" value="{{ gelir.tarih.strftime('%Y-%m-%d') }}" required>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Gelir Kaynağı</label>
+            <input type="text" class="form-control" name="gelir_kaynak" value="{{ gelir.gelir_kaynak }}" required>
+        </div>
+        <button type="submit" class="btn btn-primary">Güncelle</button>
+        <a href="{{ url_for('main.gelir_gider') }}" class="btn btn-secondary">İptal</a>
+    </form>
+</div>
+{% endblock %}
