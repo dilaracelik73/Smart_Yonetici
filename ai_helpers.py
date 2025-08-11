@@ -63,18 +63,54 @@ Yanıt sadece bu alanları içersin. Başka hiçbir şey yazma.
         ]
     }
 
-    response = requests.post(OPENROUTER_BASE_URL, headers=headers, json=data)
-
-    if response.status_code == 200:
-        result_text = response.json()["choices"][0]["message"]["content"]
-        return parse_ai_response(result_text)
-    else:
-        print("OpenRouter API hatası:", response.status_code, response.text)
+    try:
+        response = requests.post(OPENROUTER_BASE_URL, headers=headers, json=data, timeout=30)
+    except Exception as e:
+        print("OpenRouter API bağlantı hatası:", e)
         return {
             "kategori": "diger",
             "oncelik": "orta",
             "durum": "bekliyor",
-            "cozum_onerisi": "AI yanıt veremedi.",
+            "cozum_onerisi": "AI bağlantı hatası.",
+            "guven_skoru": 0
+        }
+
+    if response.status_code != 200:
+        try:
+            err = response.json().get("error", {}).get("message", response.text)
+        except Exception:
+            err = response.text
+        print(f"OpenRouter API hatası: {response.status_code} - {err}")
+        return {
+            "kategori": "diger",
+            "oncelik": "orta",
+            "durum": "bekliyor",
+            "cozum_onerisi": f"AI yanıt veremedi ({response.status_code}).",
+            "guven_skoru": 0
+        }
+
+    try:
+        resp_json = response.json()
+        if "choices" not in resp_json or not resp_json["choices"]:
+            print("Beklenen 'choices' alanı yok. Dönen veri:", resp_json)
+            return {
+                "kategori": "diger",
+                "oncelik": "orta",
+                "durum": "bekliyor",
+                "cozum_onerisi": "AI yanıt formatı hatalı.",
+                "guven_skoru": 0
+            }
+
+        result_text = resp_json["choices"][0]["message"]["content"]
+        return parse_ai_response(result_text)
+
+    except Exception as e:
+        print("Yanıt işleme hatası:", e)
+        return {
+            "kategori": "diger",
+            "oncelik": "orta",
+            "durum": "bekliyor",
+            "cozum_onerisi": "AI yanıt işleme hatası.",
             "guven_skoru": 0
         }
 
