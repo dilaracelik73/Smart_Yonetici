@@ -791,36 +791,58 @@ def gelir_gider():
     )
 
 
-@main.route("/gelir_gider/ekle", methods=["GET", "POST"])
+from decimal import Decimal, InvalidOperation
+from datetime import datetime
+
+@main.route("/gider/ekle", methods=["GET", "POST"])
 def gider_ekle():
     if "kullanici_id" not in session:
         flash("Giriş yapmanız gerekiyor.", "warning")
         return redirect(url_for("main.login"))
-
     if session.get("rol") != "yonetici":
         flash("Bu işlem için yetkiniz yok!", "danger")
         return redirect(url_for("main.gelir_gider"))
 
-    kullanici_id = session["kullanici_id"]
-    ai_risk_skoru = request.form.get("ai_risk_skoru") or None
-
     if request.method == "POST":
-        gider = Gider(
-        kategori_id=request.form["kategori_id"],
-        aciklama=request.form["aciklama"],
-        tutar=request.form["tutar"],
-        tarih=request.form["tarih"],
-        fatura_no=request.form.get("fatura_no"),
-        tedarikci=request.form.get("tedarikci"),
-        ai_risk_skoru=request.form.get("ai_risk_skoru"),  # 'Yüksek', 'Normal', 'Düşük' olmalı
-        onay_durumu="onaylandi",  # küçük harfli olmalı
-        onayi_veren_id=kullanici_id
-    )
+        try:
+            # ZORUNLU ALANLAR
+            kategori_raw = (request.form.get("kategori_id") or "").strip()
+            if not kategori_raw:
+                raise ValueError("Kategori zorunlu")
+            kategori_id = int(kategori_raw)
 
-        db.session.add(gider)
-        db.session.commit()
-        flash("✅ Gider başarıyla eklendi.", "success")
-        return redirect(url_for("main.gelir_gider"))
+            aciklama = (request.form.get("aciklama") or "").strip()
+
+            tutar = Decimal((request.form.get("tutar") or "").replace(",", ".").strip())
+
+            tarih = datetime.strptime(request.form.get("tarih") or "", "%Y-%m-%d").date()
+
+            fatura_no = (request.form.get("fatura_no") or "").strip()
+            tedarikci = (request.form.get("tedarikci") or "").strip()
+            ai_risk = (request.form.get("ai_risk_skoru") or None) or None  # '' -> None
+
+            gider = Gider(
+                kategori_id=kategori_id,
+                aciklama=aciklama,
+                tutar=tutar,
+                tarih=tarih,
+                fatura_no=fatura_no,
+                tedarikci=tedarikci,
+                ai_risk_skoru=ai_risk,
+                onay_durumu="onaylandi",
+                onayi_veren_id=session["kullanici_id"],
+            )
+            db.session.add(gider)
+            db.session.commit()
+            flash("✅ Gider başarıyla eklendi.", "success")
+            return redirect(url_for("main.gelir_gider"))
+
+        except (ValueError, InvalidOperation) as e:
+            db.session.rollback()
+            flash(f"Girdi hatası: {e}", "danger")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Beklenmeyen hata: {e}", "danger")
 
     kategoriler = GiderKategori.query.filter_by(aktif=True).all()
     return render_template("gider_ekle.html", kategoriler=kategoriler)
