@@ -825,29 +825,63 @@ def gider_ekle():
     kategoriler = GiderKategori.query.filter_by(aktif=True).all()
     return render_template("gider_ekle.html", kategoriler=kategoriler)
 
-@main.route("/gelir/ekle", methods=["GET", "POST"])
+@main.route("/gelir_gider/ekle", methods=["GET", "POST"])  # URL ile aynı
 def gelir_ekle():
+    if "kullanici_id" not in session:
+        flash("Bu işlem için giriş yapın.", "warning")
+        return redirect(url_for("main.login"))
+
     if session.get("rol") != "yonetici":
         flash("Bu işlem için yetkiniz yok!", "danger")
         return redirect(url_for("main.gelir_gider"))
 
-    kullanici_id = session["kullanici_id"]
-
     if request.method == "POST":
-        gelir = Gelir(
-            aciklama=request.form["aciklama"],
-            tutar=request.form["tutar"],
-            tarih=request.form["tarih"],
-            gelir_kaynak=request.form["gelir_kaynak"],
-            onay_durumu="Onaylandı",
-            onayi_veren_id=kullanici_id
-        )
-        db.session.add(gelir)
-        db.session.commit()
-        flash("Gelir başarıyla eklendi.", "success")
-        return redirect(url_for("main.gelir_gider"))
+        from decimal import Decimal, InvalidOperation
+        from datetime import datetime
+
+        aciklama = request.form.get("aciklama", "").strip()
+        tutar_raw = request.form.get("tutar", "").replace(",", ".").strip()
+        tarih_raw = request.form.get("tarih", "").strip()
+        gelir_kaynak_raw = request.form.get("gelir_kaynak", "").strip()  # Alan adı modelinize göre AYARLAYIN
+
+        # Tip dönüşümleri
+        try:
+            tutar = Decimal(tutar_raw)
+        except InvalidOperation:
+            flash("Tutar geçersiz.", "danger")
+            return render_template("gelir_ekle.html")
+
+        try:
+            tarih = datetime.strptime(tarih_raw, "%Y-%m-%d").date()
+        except ValueError:
+            flash("Tarih formatı YYYY-MM-DD olmalı.", "danger")
+            return render_template("gelir_ekle.html")
+
+        try:
+            gelir = Gelir(
+                aciklama=aciklama,
+                tutar=tutar,
+                tarih=tarih,
+                # ↓↓↓ BURAYI MODELİNİZE GÖRE DÜZELTİN
+                # örn: kaynak=gelir_kaynak_raw  veya  gelir_kaynagi=gelir_kaynak_raw  veya  gelir_kaynak_id=int(gelir_kaynak_raw)
+                gelir_kaynak=gelir_kaynak_raw,
+                onay_durumu="Onaylandı",
+                onayi_veren_id=session["kullanici_id"],
+            )
+            db.session.add(gelir)
+            db.session.commit()
+            flash("Gelir başarıyla eklendi.", "success")
+            return redirect(url_for("main.gelir_gider"))
+        except TypeError as e:
+            db.session.rollback()
+            # Büyük olasılıkla alan adı uyuşmazlığı
+            flash(f"Alan eşleşmesi hatası: {e}", "danger")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Beklenmeyen hata: {e}", "danger")
 
     return render_template("gelir_ekle.html")
+
 
 @main.route("/gider/sil/<int:id>")
 def gider_sil(id):
@@ -873,6 +907,13 @@ def gelir_sil(id):
     flash("Gelir başarıyla silindi.", "success")
     return redirect(url_for("main.gelir_gider"))
 
+from decimal import Decimal, InvalidOperation
+from datetime import datetime
+
+def _parse_date(s: str):
+    return datetime.strptime(s, "%Y-%m-%d").date()  # form <input type="date">
+
+# --- GİDER DÜZENLE ---
 @main.route("/gider/duzenle/<int:id>", methods=["GET", "POST"])
 def gider_duzenle(id):
     if session.get("rol") != "yonetici":
@@ -881,23 +922,36 @@ def gider_duzenle(id):
 
     gider = Gider.query.get_or_404(id)
     kategoriler = GiderKategori.query.filter_by(aktif=True).all()
-    
 
     if request.method == "POST":
-        gider.kategori_id = request.form["kategori_id"]
-        gider.aciklama = request.form["aciklama"]
-        gider.tutar = request.form["tutar"]
-        gider.tarih = request.form["tarih"]
-        gider.fatura_no = request.form.get("fatura_no")
-        gider.tedarikci = request.form.get("tedarikci")
-        gider.ai_risk_skoru = request.form.get("ai_risk_skoru") or None
+        try:
+            gider.kategori_id = int(request.form["kategori_id"])
+            gider.aciklama   = (request.form["aciklama"]).strip()
 
-        db.session.commit()
-        flash("✅ Gider başarıyla güncellendi.", "success")
-        return redirect(url_for("main.gelir_gider"))
+            tutar_str = (request.form["tutar"]).replace(",", ".").strip()
+            gider.tutar = Decimal(tutar_str)
+
+            tarih_str = request.form["tarih"]  # "YYYY-MM-DD"
+            gider.tarih = _parse_date(tarih_str)
+
+            gider.fatura_no     = (request.form.get("fatura_no") or "").strip()
+            gider.tedarikci     = (request.form.get("tedarikci") or "").strip()
+            gider.ai_risk_skoru = (request.form.get("ai_risk_skoru") or "Normal").strip()
+
+            db.session.commit()
+            flash("✅ Gider başarıyla güncellendi.", "success")
+            return redirect(url_for("main.gelir_gider"))
+        except (ValueError, InvalidOperation) as e:
+            db.session.rollback()
+            flash(f"Girdi formatı hatalı (tarih/tutar/kategori): {e}", "danger")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Beklenmeyen hata: {e}", "danger")
 
     return render_template("gider_duzenle.html", gider=gider, kategoriler=kategoriler)
 
+
+# --- GELİR DÜZENLE ---
 @main.route("/gelir/duzenle/<int:id>", methods=["GET", "POST"])
 def gelir_duzenle(id):
     if session.get("rol") != "yonetici":
@@ -907,14 +961,30 @@ def gelir_duzenle(id):
     gelir = Gelir.query.get_or_404(id)
 
     if request.method == "POST":
-        gelir.aciklama = request.form["aciklama"]
-        gelir.tutar = request.form["tutar"]
-        gelir.tarih = request.form["tarih"]
-        gelir.gelir_kaynak = request.form["gelir_kaynak"]
-        gelir.onay_durumu = "onayli"  # veritabanına uygun olacak şekilde küçük harf
+        try:
+            gelir.aciklama = (request.form["aciklama"]).strip()
 
-        db.session.commit()
-        flash("✅ Gelir başarıyla güncellendi.", "success")
-        return redirect(url_for("main.gelir_gider"))
+            tutar_str = (request.form["tutar"]).replace(",", ".").strip()
+            gelir.tutar = Decimal(tutar_str)
+
+            tarih_str = request.form["tarih"]
+            gelir.tarih = _parse_date(tarih_str)
+
+            # model alan adınıza göre düzeltin: gelir_kaynak / gelir_kaynagi / gelir_kaynak_id
+            gelir.gelir_kaynak = (request.form["gelir_kaynak"]).strip()
+
+            # veritabanınızdaki allowed değerle birebir aynı olsun:
+            gelir.onay_durumu = "onaylandi"
+
+            db.session.commit()
+            flash("✅ Gelir başarıyla güncellendi.", "success")
+            return redirect(url_for("main.gelir_gider"))
+        except (InvalidOperation, ValueError) as e:
+            db.session.rollback()
+            flash(f"Girdi formatı hatalı (tarih/tutar): {e}", "danger")
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Beklenmeyen hata: {e}", "danger")
 
     return render_template("gelir_duzenle.html", gelir=gelir)
+
