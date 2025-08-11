@@ -10,3 +10,7 @@
 *.pfx
 *.cer
 *.crt
+
+
+__pycache__/
+*.pyc
