@@ -1,21 +1,24 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from app.models import db
 
-
-
+# TEK ve MERKEZİ db nesnesi
+db = SQLAlchemy()
 
 def create_app():
     app = Flask(__name__)
-    
-    app.config['SECRET_KEY'] = 'gizli_anahtar'
-    app.config['SQLALCHEMY_DATABASE_URI'] = 'mssql+pyodbc://DILARA_CELIK\\SQLEXPRESS/yonetici_db?driver=ODBC+Driver+17+for+SQL+Server&TrustServerCertificate=yes'
-    app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+    from config import Config
+    app.config.from_object(Config)
 
+    # db'yi bu app'e bağla
     db.init_app(app)
 
-    # Blueprint’leri import et
-    from app.routes import main
-    app.register_blueprint(main)
+    # Modelleri ve blueprint'leri init_app'ten SONRA import et
+    from . import models                 # tablolar kaydolur
+    from .routes import main as main_bp  # varsa blueprint
+
+    app.register_blueprint(main_bp)
+
+    with app.app_context():
+        db.create_all()  # SQLite tabloları oluştur
 
     return app

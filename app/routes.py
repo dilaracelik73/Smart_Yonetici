@@ -1,12 +1,20 @@
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
 from datetime import datetime
 from werkzeug.security import generate_password_hash, check_password_hash
-from .models import Kullanici, Sikayet, Aidat, Daire, Sakin,Duyurular,AISorgu,AidatDonem,Aidat,Sakin,GiderKategori,Gider,Gelir
+from sqlalchemy import func, and_
+
 from . import db
-from ai_helpers import generate_announcement,analyze_complaint_with_ai,kaydet_ai_sorgu,akilli_cevap_uret
-from flask_login import login_required
-from sqlalchemy.sql import func
-from sqlalchemy import text
+from .models import (
+    Kullanici, Sikayet, Aidat, Daire, Sakin,
+    Duyurular, AISorgu, AidatDonem, GiderKategori, Gider, Gelir
+)
+
+from ai_helpers import (
+    generate_announcement,
+    analyze_complaint_with_ai,
+    kaydet_ai_sorgu,
+    akilli_cevap_uret
+)
 
 main = Blueprint('main', __name__)
 

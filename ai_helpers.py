@@ -6,6 +6,7 @@ from datetime import datetime
 import time
 import os
 from dotenv import load_dotenv
+from flask import current_app
 
 load_dotenv()
 
@@ -209,22 +210,38 @@ def _rule_based_category(soru_norm: str) -> str:
         return "şikayet"
     return "genel"
 
+from app.models import AISorgu
+
 def _log_ai_sorgu(kullanici_id, soru, cevap, kategori):
-    db.session.execute(text("""
-        INSERT INTO dbo.ai_sorgulari 
-          (kullanici_id, sorgu_metni, cevap_metni, sorgu_kategori, yanitlanma_suresi, kullanici_memnuniyeti, olusturma_tarihi)
-        VALUES 
-          (:k_id, :soru, :cevap, :kategori, :sure, :puan, :tarih);
-    """), {
-        "k_id": kullanici_id,
-        "soru": soru,
-        "cevap": cevap,
-        "kategori": kategori,
-        "sure": 1.1,
-        "puan": None,
-        "tarih": datetime.utcnow()
-    })
+    """AI sorgusunu taşınabilir şekilde kaydet (ORM)."""
+    kayit = AISorgu(
+        kullanici_id=kullanici_id,
+        sorgu_metni=soru,
+        cevap_metni=cevap,
+        sorgu_kategori=kategori,
+        yanitlanma_suresi=1.1,
+        kullanici_memnuniyeti=None,
+        olusturma_tarihi=datetime.utcnow()
+    )
+    db.session.add(kayit)
     db.session.commit()
+
+
+def _is_sqlite() -> bool:
+    """DB türünü güvenli tespit et (context olsa da olmasa da)."""
+    # 1) URI'den anla
+    try:
+        uri = current_app.config.get("SQLALCHEMY_DATABASE_URI", "")
+        if uri:
+            return uri.strip().lower().startswith("sqlite")
+    except Exception:
+        pass
+    # 2) Etkin bind üzerinden
+    try:
+        bind = db.session.get_bind()  # Flask-SQLAlchemy 3.x
+        return bool(bind and getattr(bind, "dialect", None) and bind.dialect.name == "sqlite")
+    except Exception:
+        return False
 
 # --- Ana fonksiyon -----------------------------------------------------------
 
@@ -284,70 +301,95 @@ def akilli_cevap_uret(soru: str, kullanici_id: int):
             else:
                 kategori = "genel"
 
+        
         # --- 3) Kategoriye göre yanıt ---------------------------------------
+        is_sqlite = _is_sqlite()  # YENİ
+
         if kategori == "finans":
             # a) "son 3 ay" + "gider" analizi
             if (("son 3 ay" in soru_norm) or ("son uc ay" in soru_norm)) and ("gider" in soru_norm):
-                sql = text("""
-                    /* İçinde bulunulan ay dahil son 3 takvim ayı */
-                    WITH son3 AS (
-                      SELECT 
-                        FORMAT(tarih, 'yyyy-MM') AS ay,
-                        SUM(tutar) AS toplam
-                      FROM dbo.giderler
-                      WHERE tarih >= DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-                        AND tarih <  DATEADD(MONTH,  1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
-                      GROUP BY FORMAT(tarih, 'yyyy-MM')
-                    )
-                    SELECT ay, toplam FROM son3 ORDER BY ay DESC;
-                """)
+                if is_sqlite:
+                    sql = text("""
+                        SELECT strftime('%Y-%m', tarih) AS ay, SUM(tutar) AS toplam
+                        FROM giderler
+                        WHERE date(tarih) >= date('now','start of month','-2 months')
+                        AND date(tarih) <  date('now','start of month','+1 month')
+                        GROUP BY ay
+                        ORDER BY ay DESC;
+                    """)
+                else:
+                    sql = text("""
+                        WITH son3 AS (
+                        SELECT FORMAT(tarih, 'yyyy-MM') AS ay, SUM(tutar) AS toplam
+                        FROM dbo.giderler
+                        WHERE tarih >= DATEADD(MONTH, -2, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
+                            AND tarih <  DATEADD(MONTH,  1, DATEFROMPARTS(YEAR(GETDATE()), MONTH(GETDATE()), 1))
+                        GROUP BY FORMAT(tarih, 'yyyy-MM')
+                        )
+                        SELECT ay, toplam FROM son3 ORDER BY ay DESC;
+                    """)
                 rows = db.session.execute(sql).fetchall() or []
                 if not rows:
                     cevap = "Son 3 ay için gider kaydı bulunamadı."
                 else:
-                    satirlar = "\n".join(f"- {r.ay}: {float(r.toplam):,.2f} TL" for r in rows)
+                    satirlar = "\n".join(f"- {r.ay}: {float(r.toplam or 0):,.2f} TL" for r in rows)
                     cevap = "Son 3 ayın gider analizi:\n" + satirlar
 
             # b) "bu ay toplam gider ne kadar"
             elif ("bu ay" in soru_norm) and ("gider" in soru_norm) and ("ne kadar" in soru_norm):
-                sql = text("""
-                    SELECT ISNULL(SUM(tutar), 0)
-                    FROM dbo.giderler
-                    WHERE YEAR(tarih) = YEAR(GETDATE())
-                      AND MONTH(tarih) = MONTH(GETDATE());
-                """)
+                if is_sqlite:
+                    sql = text("""
+                        SELECT COALESCE(SUM(tutar), 0)
+                        FROM giderler
+                        WHERE strftime('%Y', tarih) = strftime('%Y', 'now')
+                        AND strftime('%m', tarih) = strftime('%m', 'now');
+                    """)
+                else:
+                    sql = text("""
+                        SELECT ISNULL(SUM(tutar), 0)
+                        FROM dbo.giderler
+                        WHERE YEAR(tarih) = YEAR(GETDATE())
+                        AND MONTH(tarih) = MONTH(GETDATE());
+                    """)
                 toplam = db.session.execute(sql).scalar() or 0
                 cevap = f"Bu ayın toplam gideri: {float(toplam):,.2f} TL"
 
             # c) Varsayılan: son 3 ay toplamları
             else:
-                sql = text("""
-                    SELECT TOP 3 FORMAT(tarih, 'yyyy-MM') AS ay, SUM(tutar) AS toplam
-                    FROM dbo.giderler
-                    GROUP BY FORMAT(tarih, 'yyyy-MM')
-                    ORDER BY ay DESC;
-                """)
+                if is_sqlite:
+                    sql = text("""
+                        SELECT strftime('%Y-%m', tarih) AS ay, SUM(tutar) AS toplam
+                        FROM giderler
+                        GROUP BY ay
+                        ORDER BY ay DESC
+                        LIMIT 3;
+                    """)
+                else:
+                    sql = text("""
+                        SELECT TOP 3 FORMAT(tarih, 'yyyy-MM') AS ay, SUM(tutar) AS toplam
+                        FROM dbo.giderler
+                        GROUP BY FORMAT(tarih, 'yyyy-MM')
+                        ORDER BY ay DESC;
+                    """)
                 rows = db.session.execute(sql).fetchall() or []
                 cevap = ("Finans kaydı bulunamadı." if not rows else
-                         "Son 3 ayın gider toplamları:\n" +
-                         "\n".join(f"- {r.ay}: {float(r.toplam):,.2f} TL" for r in rows))
+                        "Son 3 ayın gider toplamları:\n" +
+                        "\n".join(f"- {r.ay}: {float(r.toplam or 0):,.2f} TL" for r in rows))
+                
 
         elif kategori == "aidat":
-            sonuc = db.session.execute(text("""
-                SELECT COUNT(*) 
-                FROM dbo.aidatlar 
-                WHERE odendi = 1;
-            """)).scalar() or 0
+            sql = text("SELECT COUNT(*) FROM aidatlar WHERE odendi = 1;") if is_sqlite else \
+                text("SELECT COUNT(*) FROM dbo.aidatlar WHERE odendi = 1;")
+            sonuc = db.session.execute(sql).scalar() or 0
             cevap = f"Bu ay toplam {sonuc} kişi aidat ödedi."
 
         elif kategori in ("şikayet", "sikayet"):
-            rows = db.session.execute(text("""
-                SELECT kategori, COUNT(*) AS sayi 
-                FROM dbo.sikayetler 
-                GROUP BY kategori;
-            """)).fetchall() or []
+            sql = text("SELECT kategori, COUNT(*) AS sayi FROM sikayetler GROUP BY kategori;") if is_sqlite else \
+                text("SELECT kategori, COUNT(*) AS sayi FROM dbo.sikayetler GROUP BY kategori;")
+            rows = db.session.execute(sql).fetchall() or []
             cevap = ("Kayıtlı şikayet bulunamadı." if not rows
-                     else "Şikayet kategorileri:\n" + "\n".join(f"- {r.kategori}: {r.sayi} şikayet" for r in rows))
+                    else "Şikayet kategorileri:\n" +
+                        "\n".join(f"- {r.kategori}: {r.sayi} şikayet" for r in rows))
 
         else:
             # Genel AI fallback (apartman dışı sorular)
