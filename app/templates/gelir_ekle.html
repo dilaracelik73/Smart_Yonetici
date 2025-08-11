@@ -2,7 +2,8 @@
 {% block content %}
 <div class="container mt-5">
   <h2>Yeni Gelir Ekle</h2>
-  <form method="POST">
+<form method="POST" action="{{ url_for('main.gelir_ekle') }}">
+
     <div class="mb-3">
       <label for="aciklama" class="form-label">Açıklama</label>
       <input type="text" class="form-control" name="aciklama" required>

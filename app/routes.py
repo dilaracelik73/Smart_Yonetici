@@ -794,7 +794,7 @@ def gelir_gider():
 from decimal import Decimal, InvalidOperation
 from datetime import datetime
 
-@main.route("/gelir_gider/ekle", methods=["GET", "POST"])
+@main.route("/gider/ekle", methods=["GET", "POST"])
 def gider_ekle():
     if "kullanici_id" not in session:
         flash("Giriş yapmanız gerekiyor.", "warning")
@@ -845,7 +845,8 @@ from decimal import Decimal, InvalidOperation
 from datetime import datetime
 
 # --- GELİR EKLE ---
-@main.route("/gelir_gider/ekle", methods=["GET", "POST"])
+
+@main.route("/gelir/ekle", methods=["GET", "POST"])
 def gelir_ekle():
     if "kullanici_id" not in session:
         flash("Bu işlem için giriş yapın.", "warning")

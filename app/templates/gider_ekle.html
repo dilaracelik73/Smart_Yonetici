@@ -2,8 +2,8 @@
 {% block content %}
 <div class="container mt-5">
   <h3 class="mb-4"><i class="fas fa-plus-circle me-2"></i> Gider Ekle</h3>
-
-  <form method="POST" class="row g-3">
+<form method="POST" action="{{ url_for('main.gider_ekle') }}" class="row g-3">
+  
 
     <!-- KATEGORİ (Özel Dropdown) -->
     <div class="col-md-6">
